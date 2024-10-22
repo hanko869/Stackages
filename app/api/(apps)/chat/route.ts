@@ -10,6 +10,7 @@ import { PromptTemplate } from "@langchain/core/prompts";
 import { HttpResponseOutputParser } from "langchain/output_parsers";
 import { createClient } from "@/lib/utils/supabase/server";
 import { toolConfig } from "@/app/(apps)/chat/toolConfig";
+import { authMiddleware } from "@/lib/middleware/authMiddleware";
 
 export const runtime = "edge";
 
@@ -68,22 +69,13 @@ User: {input}
 AI:`;
 
 export async function POST(req: NextRequest) {
-  const supabase = createClient();
-
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  const userId = user?.id;
-
-  if (!userId) {
-    return NextResponse.json(
-      { error: "User not authenticated" },
-      { status: 401 }
-    );
-  }
+  // Check if the user is authenticated
+  const authResponse = await authMiddleware(req);
+  if (authResponse.status === 401) return authResponse;
 
   try {
+    const supabase = createClient();
+
     const body = await req.json();
     const { messages, chatId } = body;
 

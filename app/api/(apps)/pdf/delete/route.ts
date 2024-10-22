@@ -1,9 +1,14 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import s3 from "@/lib/cloudflare";
-import { createClient } from "@/lib/utils/supabase/server";
 import { DeleteObjectCommand } from "@aws-sdk/client-s3";
+import { createClient } from "@/lib/utils/supabase/server";
+import { authMiddleware } from "@/lib/middleware/authMiddleware";
 
-export async function POST(request: any) {
+export async function POST(request: NextRequest) {
+  // Check if the user is authenticated
+  const authResponse = await authMiddleware(request);
+  if (authResponse.status === 401) return authResponse;
+
   const { documentId } = await request.json();
   const supabase = createClient();
 

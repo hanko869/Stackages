@@ -4,6 +4,7 @@ import { RecursiveCharacterTextSplitter } from "langchain/text_splitter";
 import { OpenAIEmbeddings } from "@langchain/openai";
 import { Document } from "langchain/document";
 import { PDFLoader } from "@langchain/community/document_loaders/fs/pdf";
+import { authMiddleware } from "@/lib/middleware/authMiddleware";
 
 type DocumentMetadata = {
   document_id: any;
@@ -18,22 +19,11 @@ function sanitizeText(text: string): string {
 }
 
 export async function POST(request: NextRequest) {
+  // Check if the user is authenticated
+  const authResponse = await authMiddleware(request);
+  if (authResponse.status === 401) return authResponse;
+
   const supabase = createClient();
-
-  const {
-    data: { user },
-    error: authError,
-  } = await supabase.auth.getUser();
-
-  const userId = user?.id;
-
-  if (!userId) {
-    return NextResponse.json(
-      { error: "You must be logged in to ingest data" },
-      { status: 401 }
-    );
-  }
-
   const { fileUrl, documentId } = await request.json();
 
   if (!fileUrl || typeof fileUrl !== "string") {

@@ -1,10 +1,15 @@
 import { replicate } from "@/lib/replicate";
-import { uploadToSupabase } from "@/lib/hooks/uploadToSupabase";
 import { NextResponse, NextRequest } from "next/server";
 import { reduceUserCredits } from "@/lib/hooks/reduceUserCredits";
 import { companyConfig } from "@/config";
+import { authMiddleware } from "@/lib/middleware/authMiddleware";
+import { createClient } from "@/lib/utils/supabase/server";
 
 export async function POST(request: NextRequest) {
+  // Check if the user is authenticated
+  const authResponse = await authMiddleware(request);
+  if (authResponse.status === 401) return authResponse;
+
   try {
     const requestBody = await request.json();
     const toolPath = decodeURIComponent(requestBody.toolPath);
@@ -60,14 +65,23 @@ export async function POST(request: NextRequest) {
     // Extract the URL from the upload result
     const uploadedImageUrl = uploadResult.url;
 
-    // Alternatively, if you dont want to upload image to Cloudflare, you can directly use the image URL from Replicate response and delete the above code
+    // Upload to Supabase
+    const supabase = createClient();
 
-    const supabaseResponse = await uploadToSupabase(
-      requestBody,
-      uploadedImageUrl,
-      toolConfig.toolPath,
-      toolConfig.aiModel
-    );
+    const insertData: any = {
+      email: requestBody.email,
+      input_data: requestBody,
+      output_data: uploadedImageUrl,
+      type: toolConfig.toolPath,
+      model: toolConfig.aiModel,
+    };
+
+    const { data: supabaseData, error: supabaseError } = await supabase
+      .from("generations")
+      .insert([insertData])
+      .select();
+
+    if (supabaseError) throw new Error(supabaseError.message);
 
     // If paywall is enabled, reduce user credits after successful generation
     if (toolConfig.paywall === true) {
@@ -77,7 +91,8 @@ export async function POST(request: NextRequest) {
     // Return the ID of the stored data, so the client can redirect to the result page
     return new NextResponse(
       JSON.stringify({
-        id: supabaseResponse[0].id,
+        id: supabaseData[0].id,
+        imageUrl: uploadedImageUrl,
       }),
       { status: 200 }
     );

@@ -39,9 +39,15 @@ export function UserGenerations({
   const [currentPage, setCurrentPage] = useState(1);
   const imagesPerPage = 24;
 
-  const filteredGenerations = generations.filter(
-    (gen) => gen.type === generationType
-  );
+  const filteredGenerations = generations.filter((gen) => {
+    if (generationType === "replicate/sdxl") {
+      return gen.type.includes("sdxl");
+    } else if (generationType === "openai/dalle") {
+      return gen.type.includes("dalle");
+    }
+    return false;
+  });
+
   const paginatedGenerations = filteredGenerations.slice(
     (currentPage - 1) * imagesPerPage,
     currentPage * imagesPerPage
@@ -177,7 +183,7 @@ export function UserGenerations({
               </div>
             ))}
           </div>
-          {generations.length > imagesPerPage && (
+          {filteredGenerations.length > imagesPerPage && (
             <div className="flex justify-center items-center mt-4 space-x-2">
               <button
                 onClick={() => handlePageChange(1)}
@@ -193,50 +199,51 @@ export function UserGenerations({
               >
                 <ChevronLeft className="h-4 w-4" />
               </button>
-              {[...Array(Math.ceil(generations.length / imagesPerPage))].map(
-                (_, i) => {
-                  const pageNumber = i + 1;
-                  if (
-                    pageNumber === 1 ||
-                    pageNumber ===
-                      Math.ceil(generations.length / imagesPerPage) ||
-                    (pageNumber >= currentPage - 2 &&
-                      pageNumber <= currentPage + 2)
-                  ) {
-                    return (
-                      <button
-                        key={i}
-                        onClick={() => handlePageChange(pageNumber)}
-                        disabled={currentPage === pageNumber}
-                        className={`px-3 py-2 rounded ${
-                          currentPage === pageNumber
-                            ? "bg-primary text-white"
-                            : "bg-gray-200"
-                        }`}
-                      >
-                        {pageNumber}
-                      </button>
-                    );
-                  } else if (
-                    pageNumber === currentPage - 3 ||
-                    pageNumber === currentPage + 3
-                  ) {
-                    return <span key={i}>...</span>;
-                  }
-                  return null;
+              {[
+                ...Array(Math.ceil(filteredGenerations.length / imagesPerPage)),
+              ].map((_, i) => {
+                const pageNumber = i + 1;
+                if (
+                  pageNumber === 1 ||
+                  pageNumber ===
+                    Math.ceil(filteredGenerations.length / imagesPerPage) ||
+                  (pageNumber >= currentPage - 2 &&
+                    pageNumber <= currentPage + 2)
+                ) {
+                  return (
+                    <button
+                      key={i}
+                      onClick={() => handlePageChange(pageNumber)}
+                      disabled={currentPage === pageNumber}
+                      className={`px-3 py-2 rounded ${
+                        currentPage === pageNumber
+                          ? "bg-primary text-white"
+                          : "bg-gray-200"
+                      }`}
+                    >
+                      {pageNumber}
+                    </button>
+                  );
+                } else if (
+                  pageNumber === currentPage - 3 ||
+                  pageNumber === currentPage + 3
+                ) {
+                  return <span key={i}>...</span>;
                 }
-              )}
+                return null;
+              })}
               <button
                 onClick={() =>
                   handlePageChange(
                     Math.min(
                       currentPage + 1,
-                      Math.ceil(generations.length / imagesPerPage)
+                      Math.ceil(filteredGenerations.length / imagesPerPage)
                     )
                   )
                 }
                 disabled={
-                  currentPage === Math.ceil(generations.length / imagesPerPage)
+                  currentPage ===
+                  Math.ceil(filteredGenerations.length / imagesPerPage)
                 }
                 className="px-3 py-2 bg-gray-200 rounded disabled:opacity-50"
               >
@@ -245,11 +252,12 @@ export function UserGenerations({
               <button
                 onClick={() =>
                   handlePageChange(
-                    Math.ceil(generations.length / imagesPerPage)
+                    Math.ceil(filteredGenerations.length / imagesPerPage)
                   )
                 }
                 disabled={
-                  currentPage === Math.ceil(generations.length / imagesPerPage)
+                  currentPage ===
+                  Math.ceil(filteredGenerations.length / imagesPerPage)
                 }
                 className="px-3 py-2 bg-gray-200 rounded disabled:opacity-50 text-sm"
               >

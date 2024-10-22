@@ -82,7 +82,9 @@ export const RenderFields: React.FC<RenderFieldsProps> = ({
                 <SelectGroup>
                   <SelectLabel>{field.label}</SelectLabel>
                   {field.options?.map((option) => (
-                    <SelectItem value={option}>{option}</SelectItem>
+                    <SelectItem key={option} value={option}>
+                      {option}
+                    </SelectItem>
                   ))}
                 </SelectGroup>
               </SelectContent>

@@ -3,8 +3,13 @@ import { NextResponse, NextRequest } from "next/server";
 import { uploadToSupabase } from "@/lib/hooks/uploadToSupabase";
 import { companyConfig } from "@/config";
 import { reduceUserCredits } from "@/lib/hooks/reduceUserCredits";
+import { authMiddleware } from "@/lib/middleware/authMiddleware";
 
 export async function POST(request: NextRequest) {
+  // Check if the user is authenticated
+  const authResponse = await authMiddleware(request);
+  if (authResponse.status === 401) return authResponse;
+
   try {
     const requestBody = await request.json();
     const toolPath = decodeURIComponent(requestBody.toolPath); // get tool path from request body
