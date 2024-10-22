@@ -31,7 +31,6 @@ export async function POST(request: NextRequest) {
 
   try {
     // Construct the Stripe event asynchronously
-    // This is necessary for Edge runtime compatibility
     event = await stripe.webhooks.constructEventAsync(
       payload,
       signature,

@@ -11,6 +11,17 @@ const isError = (error: unknown): error is Error => {
   return error instanceof Error;
 };
 
+// Ensure dynamic content generation for each request
+export const dynamic = "force-dynamic";
+
+/**
+ * Handles POST requests for LemonSqueezy webhook events.
+ * This function is responsible for processing LemonSqueezy webhook events,
+ * particularly the 'order_created' event.
+ *
+ * @param request - The incoming request object
+ * @returns A Response object indicating the result of the webhook processing
+ */
 export async function POST(request: Request) {
   if (!process.env.LEMON_SQUEEZY_WEBHOOK_SECRET) {
     return new Response(
@@ -22,6 +33,7 @@ export async function POST(request: Request) {
   }
 
   try {
+    // Verify the webhook signature
     const secret = process.env.LEMON_SQUEEZY_WEBHOOK_SECRET;
     const text = await request.text();
     const hmac = crypto.createHmac("sha256", secret || "");
@@ -51,66 +63,7 @@ export async function POST(request: Request) {
 
     switch (eventName) {
       case "order_created":
-        if ("first_order_item" in attributes) {
-          let purchaseType: string | null = null;
-
-          // Check which product was purchased
-          const variantId = attributes.first_order_item.variant_id;
-          const status = attributes.status;
-
-          // Here is where you define, per product ID, what needs to be updated in the 'purchase' column of the user profile ('profiles' table in Supabase)
-          // You can grant access based on this column in your application
-          switch (variantId) {
-            case 372993:
-              purchaseType = "awp-small";
-              break;
-            case 372998:
-              purchaseType = "awp-large";
-              break;
-            case 402332:
-              purchaseType = "credits-small";
-              break;
-            case 402333:
-              purchaseType = "credits-large";
-              break;
-            default:
-              console.log("Unrecognized product ID, no update applied.");
-              return new Response(
-                "Unrecognized product ID, no update applied.",
-                {
-                  status: 200,
-                }
-              );
-          }
-
-          // Always store the purchase in the database
-          await updatePurchasesTable(userEmail, id, attributes, purchaseType);
-
-          // If no user is found with this email, return a message
-          if (!UserProfile) {
-            console.log("No user found with this email");
-            return new Response(
-              "No user found with this email, but purchase was stored in database!",
-              {
-                status: 200,
-              }
-            );
-          }
-
-          // Otherwise, we update the user profile with the purchase type
-          if (status === "paid") {
-            await updateUserProfile(userEmail, purchaseType);
-
-            // If you choose to use the credits system, you can add credits to the user's profile here
-            if (purchaseType === "credits-small") {
-              await addUserCredits(userEmail, 50);
-            } else if (purchaseType === "credits-large") {
-              await addUserCredits(userEmail, 100);
-            }
-          }
-
-          console.log("Purchased product: ", variantId);
-        }
+        await handleOrderCreated(attributes, id, UserProfile, userEmail);
         break;
       case "order_refunded":
       case "subscription_created":
@@ -143,4 +96,87 @@ export async function POST(request: Request) {
   return new Response(null, {
     status: 200,
   });
+}
+
+/**
+ * Processes a created order event.
+ * This function determines the purchase type, updates the user's profile,
+ * and records the purchase in the database.
+ *
+ * @param attributes - The attributes of the order
+ * @param id - The order ID
+ * @param UserProfile - The user's profile (if exists)
+ * @param userEmail - The user's email
+ * @returns A Response object or undefined
+ */
+async function handleOrderCreated(
+  attributes: any,
+  id: string,
+  UserProfile: any,
+  userEmail: string
+) {
+  if ("first_order_item" in attributes) {
+    let purchaseType: string | null = null;
+
+    // Check which product was purchased
+    const variantId = attributes.first_order_item.variant_id;
+    const status = attributes.status;
+
+    // Define purchase type based on variant ID
+    switch (variantId) {
+      case 373993:
+        purchaseType = "anotherwrapper-core";
+        break;
+      case 373998:
+        purchaseType = "anotherwrapper-premium";
+        break;
+      case 452443:
+        purchaseType = "anotherwrapper-enterprise";
+        break;
+      case 404332:
+        purchaseType = "credits-small";
+        break;
+      case 404333:
+        purchaseType = "credits-large";
+        break;
+      default:
+        console.log("Unrecognized product ID, no update applied.");
+        return new Response("Unrecognized product ID, no update applied.", {
+          status: 200,
+        });
+    }
+
+    // Always store the purchase in the database
+    await updatePurchasesTable(
+      userEmail,
+      id,
+      attributes,
+      purchaseType,
+      "lemonsqueezy"
+    );
+
+    // If no user is found with this email, return a message
+    if (!UserProfile) {
+      console.log("No user found with this email");
+      return new Response(
+        "No user found with this email, but purchase was stored in database!",
+        {
+          status: 200,
+        }
+      );
+    }
+
+    // Update the user profile and add credits if applicable
+    if (status === "paid") {
+      await updateUserProfile(userEmail, purchaseType);
+
+      if (purchaseType === "credits-small") {
+        await addUserCredits(userEmail, 50);
+      } else if (purchaseType === "credits-large") {
+        await addUserCredits(userEmail, 100);
+      }
+    }
+
+    console.log("Purchased product: ", variantId);
+  }
 }
