@@ -3,10 +3,28 @@ import { createClient } from "@/lib/utils/supabase/server";
 import fetch from "node-fetch";
 import { replicate } from "@/lib/replicate";
 
+/**
+ * API Route: Transcribes audio files using Replicate's Whisper model.
+ *
+ * **Process:**
+ * 1. Authenticates the user.
+ * 2. Fetches the audio file from the provided URL.
+ * 3. Transcribes the audio using Replicate's Whisper model.
+ * 4. Stores the transcription data in Supabase.
+ * 5. Returns the transcription ID and text.
+ *
+ * The transcription includes:
+ * - Full text transcription
+ * - Timestamped chunks for precise audio segment mapping
+ *
+ * @param {Request} request - The incoming request object containing recordingId and audioUrl.
+ * @returns {Promise<NextResponse>} JSON response containing the transcription details.
+ */
 export async function POST(request: any) {
   try {
     const supabase = createClient();
 
+    // Authenticate user
     const {
       data: { user },
     } = await supabase.auth.getUser();
@@ -19,13 +37,14 @@ export async function POST(request: any) {
       });
     }
 
+    // Extract request parameters
     const requestBody = await request.json();
     const { recordingId, audioUrl } = requestBody;
 
     console.log("Transcribing audio for recording ID:", recordingId);
     console.log("Audio URL:", audioUrl);
 
-    // Fetch the audio file from the provided URL
+    // Verify audio file accessibility
     const audioResponse = await fetch(audioUrl);
     if (!audioResponse.ok) {
       console.error("Failed to fetch audio file from URL:", audioUrl);
@@ -37,7 +56,7 @@ export async function POST(request: any) {
       );
     }
 
-    // Transcribe using Replicate instead of OpenAI
+    // Transcribe audio using Replicate's Whisper model
     const output = (await replicate.run(
       "vaibhavs10/incredibly-fast-whisper:3ab86df6c8f54c11309d4d1f930ac292bad43ace52d10c80d87eb258b3c9f79c",
       {
@@ -52,9 +71,7 @@ export async function POST(request: any) {
 
     const modelUsed = "incredibly-fast-whisper";
 
-    // console.log("Transcription response received:", output);
-
-    // Store the transcription data in Supabase
+    // Store transcription in database
     const { data, error } = await supabase
       .from("transcripts")
       .insert([

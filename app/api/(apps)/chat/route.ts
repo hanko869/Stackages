@@ -12,6 +12,24 @@ import { createClient } from "@/lib/utils/supabase/server";
 import { toolConfig } from "@/app/(apps)/chat/toolConfig";
 import { authMiddleware } from "@/lib/middleware/authMiddleware";
 
+/**
+ * API Route: Handles streaming chat interactions with OpenAI.
+ *
+ * **Features:**
+ * - Streaming responses for real-time chat interaction
+ * - Message history management with configurable context window
+ * - Persistent storage of conversations in Supabase
+ * - Edge runtime for optimal performance
+ *
+ * **Process:**
+ * 1. Authenticates the user
+ * 2. Formats previous messages for context
+ * 3. Streams AI response using OpenAI
+ * 4. Stores the complete conversation in database
+ *
+ * @param {NextRequest} req - The incoming request containing messages and chatId
+ * @returns {Promise<StreamingTextResponse|NextResponse>} Streaming response or error
+ */
 export const runtime = "edge";
 
 type MessageRole =
@@ -28,6 +46,12 @@ interface Message {
   content: string;
 }
 
+/**
+ * Formats a Vercel chat message into our internal message format
+ * @param {VercelChatMessage} message - The message to format
+ * @param {number} id - The message ID
+ * @returns {Message} Formatted message
+ */
 const formatMessage = (message: VercelChatMessage, id: number): Message => {
   return {
     id: id.toString(),
@@ -36,6 +60,10 @@ const formatMessage = (message: VercelChatMessage, id: number): Message => {
   };
 };
 
+/**
+ * Template for the AI chat persona
+ * Defines the character, tone, and behavioral guidelines
+ */
 const TEMPLATE = `You are a confused indie hacker with a sense of humor and a knack for building in public. 
 
 Instructions:
@@ -69,23 +97,25 @@ User: {input}
 AI:`;
 
 export async function POST(req: NextRequest) {
-  // Check if the user is authenticated
+  // Authenticate user
   const authResponse = await authMiddleware(req);
   if (authResponse.status === 401) return authResponse;
 
   try {
     const supabase = createClient();
 
+    // Extract request parameters
     const body = await req.json();
     const { messages, chatId } = body;
 
-    // To remove the max messages to include, simply remove the slice method
+    // Format previous messages within context window
     const formattedPreviousMessages = messages
       .slice(-toolConfig.messagesToInclude!)
       .map((msg: VercelChatMessage, index: number) =>
         formatMessage(msg, index)
       );
 
+    // Setup OpenAI chat completion
     const currentMessageContent = messages[messages.length - 1].content;
     const prompt = PromptTemplate.fromTemplate(TEMPLATE);
 
@@ -97,9 +127,11 @@ export async function POST(req: NextRequest) {
       verbose: true,
     });
 
+    // Create streaming chain with prompt and model
     const outputParser = new HttpResponseOutputParser();
     const chain = prompt.pipe(model).pipe(outputParser);
 
+    // Generate streaming response
     const stream = await chain.stream({
       chat_history: formattedPreviousMessages
         .map((msg: any) => `${msg.role}: ${msg.content}`)
@@ -107,13 +139,14 @@ export async function POST(req: NextRequest) {
       input: currentMessageContent,
     });
 
-    // Create a TransformStream to collect AI response while streaming
+    // Setup streaming infrastructure
     const { readable, writable } = new TransformStream();
     const writer = writable.getWriter();
     const reader = stream.getReader();
     const decoder = new TextDecoder();
     let aiResponse = "";
 
+    // Process the stream
     reader.read().then(function processText({ done, value }): any {
       if (done) {
         writer.close();
@@ -124,20 +157,20 @@ export async function POST(req: NextRequest) {
       return reader.read().then(processText);
     });
 
-    // Stream the response to the user
+    // Transform and prepare the response stream
     const responseStream = readable.pipeThrough(createStreamDataTransformer());
     const response = new StreamingTextResponse(responseStream);
 
-    // Wait for the stream to complete
+    // After streaming completes, update the database
     writer.closed.then(async () => {
-      // Add AI response to messages
+      // Add AI response to message history
       messages.push({
         id: messages.length.toString(),
         role: "assistant",
         content: aiResponse,
       });
 
-      // Update the database after streaming
+      // Persist conversation in database
       await supabase
         .from("conversations")
         .update({

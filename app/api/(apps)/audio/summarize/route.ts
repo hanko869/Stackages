@@ -4,6 +4,13 @@ import { NextResponse, NextRequest } from "next/server";
 import { toolConfig } from "@/app/(apps)/audio/toolConfig";
 import { z } from "zod";
 
+/**
+ * Schema for structured output from the AI model.
+ * Defines the expected format of the summary, including:
+ * - title: A descriptive title for the voice message
+ * - summary: A third-person perspective summary
+ * - actionItems: A list of explicit action items
+ */
 const SummarizeSchema = z.object({
   title: z
     .string()
@@ -24,15 +31,33 @@ const SummarizeSchema = z.object({
     ),
 });
 
+// Initialize Groq chat model with structured output
 const chat = new ChatGroq({
   model: toolConfig.aiModel,
 });
 
 const chatWithStructuredOutput = chat.withStructuredOutput(SummarizeSchema);
 
+/**
+ * API Route: Generates a structured summary of transcribed audio using Groq AI.
+ *
+ * **Process:**
+ * 1. Authenticates the user.
+ * 2. Processes the transcript using Groq AI to generate:
+ *    - A descriptive title
+ *    - A comprehensive summary
+ *    - A list of action items
+ * 3. Stores the summary in the database.
+ * 4. Updates the recording title.
+ * 5. Returns the summary ID.
+ *
+ * @param {NextRequest} request - The incoming request containing the transcript and recordingId.
+ * @returns {Promise<NextResponse>} JSON response containing the summary ID.
+ */
 export async function POST(request: NextRequest) {
   const supabase = createClient();
 
+  // Authenticate user
   const {
     data: { user },
   } = await supabase.auth.getUser();
@@ -46,7 +71,7 @@ export async function POST(request: NextRequest) {
   }
 
   try {
-    // Read the body once
+    // Extract request parameters
     const requestBody = await request.json();
     const { transcript, recordingId } = requestBody;
 
@@ -56,7 +81,7 @@ export async function POST(request: NextRequest) {
       });
     }
 
-    // Generate response from Groq
+    // Generate structured summary using Groq AI
     const responseData = await chatWithStructuredOutput.invoke([
       ["system", toolConfig.systemMessage!],
       ["human", transcript],
@@ -66,7 +91,7 @@ export async function POST(request: NextRequest) {
 
     const { title, summary, actionItems } = responseData;
 
-    // Insert summary into the summaries table
+    // Store summary in database
     const { data: summaryData, error: summaryError } = await supabase
       .from("summaries")
       .insert({
@@ -84,7 +109,7 @@ export async function POST(request: NextRequest) {
 
     console.log("Summary inserted successfully:", summaryData);
 
-    // Update the title in the recordings table
+    // Update recording title
     const { data: recordingData, error: recordingError } = await supabase
       .from("recordings")
       .update({ title: title })
@@ -97,7 +122,6 @@ export async function POST(request: NextRequest) {
 
     console.log("Recording updated successfully:", recordingData);
 
-    // Return the ID of the stored summary
     return new NextResponse(
       JSON.stringify({
         id: summaryData[0].id,

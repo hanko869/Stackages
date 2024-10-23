@@ -1,10 +1,34 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/utils/supabase/server";
 
+/**
+ * API Route: Handles external PDF document registration.
+ *
+ * **Features:**
+ * - Registers external PDF URLs in the system
+ * - Enforces document limits per user
+ * - Maintains document metadata without file storage
+ * - Supports integration with external document sources
+ *
+ * **Process:**
+ * 1. Authenticates the user
+ * 2. Validates user's document count limit
+ * 3. Registers external document URL
+ * 4. Creates document metadata entry
+ *
+ * **Limitations:**
+ * - Maximum 10 documents per user
+ * - Requires valid external URL
+ * - URL must point to accessible PDF
+ *
+ * @param {NextRequest} request - Contains URL and fileName for external document
+ * @returns {Promise<NextResponse>} Document ID and URL confirmation
+ */
 export async function POST(request: NextRequest) {
   const supabase = createClient();
   const { url, fileName } = await request.json();
 
+  // Authenticate user
   const {
     data: { user },
   } = await supabase.auth.getUser();
@@ -17,6 +41,7 @@ export async function POST(request: NextRequest) {
     });
   }
 
+  // Check document limit
   const { data: docCount, error: countError } = await supabase
     .from("documents")
     .select("id", { count: "exact" })
@@ -29,6 +54,7 @@ export async function POST(request: NextRequest) {
   }
 
   try {
+    // Register external document
     const { data, error: insertError } = await supabase
       .from("documents")
       .insert([
@@ -36,7 +62,7 @@ export async function POST(request: NextRequest) {
           file_url: url,
           file_name: fileName,
           user_id: userId,
-          size: null,
+          size: null, // Size unknown for external documents
         },
       ])
       .select();

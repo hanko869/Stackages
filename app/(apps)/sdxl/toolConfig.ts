@@ -42,7 +42,6 @@ export const toolConfig: ToolConfig = {
   ////// Storage config
   upload: {
     path: "/sdxl",
-    apiEndpoint: "/api/upload/image",
   },
 
   ////// Form input

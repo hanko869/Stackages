@@ -3,11 +3,38 @@ import { toolConfig } from "@/app/(apps)/voice/toolConfig";
 import { uploadToSupabase } from "@/lib/hooks/uploadToSupabase";
 import { reduceUserCredits } from "@/lib/hooks/reduceUserCredits";
 import { createClient } from "@/lib/utils/supabase/server";
-import { companyConfig } from "@/config";
+import { uploadFile } from "@/lib/hooks/useFileUpload";
 
+/**
+ * API Route: Handles text-to-speech conversion using ElevenLabs API.
+ *
+ * **Features:**
+ * - Converts text to natural-sounding speech using ElevenLabs
+ * - Supports multiple voices and customizable voice settings
+ * - Handles audio file storage in Cloudflare R2
+ * - Stores generation metadata in Supabase
+ * - Integrates with credit system for paywall management
+ *
+ * **Process:**
+ * 1. Authenticates the user
+ * 2. Generates audio using ElevenLabs API
+ * 3. Uploads generated audio to cloud storage
+ * 4. Stores metadata in database
+ * 5. Manages user credits if paywall is enabled
+ *
+ * **Voice Settings:**
+ * - stability: Voice stability factor
+ * - similarity_boost: Voice similarity enhancement
+ * - style_exaggeration: Style emphasis level
+ * - speaker_boost: Speaker clarity boost
+ *
+ * @param {NextRequest} request - The incoming request with text and voice settings
+ * @returns {Promise<NextResponse>} JSON response containing the audio URL and generation ID
+ */
 export async function POST(request: NextRequest) {
   const supabase = createClient();
 
+  // Authenticate user
   const {
     data: { user },
   } = await supabase.auth.getUser();
@@ -26,13 +53,16 @@ export async function POST(request: NextRequest) {
   }
 
   try {
-    //1. Make request to ElevenLabs API to generate audio
+    // 1. Generate audio using ElevenLabs API
     const { text, voice, settings } = await request.json();
 
-    const url = `https://api.elevenlabs.io/v1/text-to-speech/${voice}`;
+    // Validate voice ID
     if (!voice) {
       throw new Error("Voice ID is required");
     }
+
+    // Prepare API request
+    const url = `https://api.elevenlabs.io/v1/text-to-speech/${voice}`;
     const headers = {
       Accept: "audio/mpeg",
       "Content-Type": "application/json",
@@ -49,12 +79,14 @@ export async function POST(request: NextRequest) {
       },
     };
 
+    // Make request to ElevenLabs
     const response = await fetch(url, {
       method: "POST",
       headers,
       body: JSON.stringify(data),
     });
 
+    // Handle API errors
     if (!response.ok) {
       const errorText = await response.text();
       console.error("ElevenLabs API error:", errorText);
@@ -63,35 +95,20 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Get audio buffer from response
     const audioBuffer = await response.arrayBuffer();
 
-    // 2. Upload the audio file to Cloudflare R2 Storage
-    const formData = new FormData();
-    formData.append(
-      "file",
-      new Blob([audioBuffer], { type: "audio/mpeg" }),
-      "generated_audio.mp3"
-    );
-    formData.append("userId", userId);
-
-    // Make sure to correctly define the company home URL, otherwise it won't find the upload route
-    const uploadUrl = `${companyConfig.company.homeUrl}/api/voice/upload`;
-    console.log("Upload URL:", uploadUrl);
-
-    const uploadResponse = await fetch(uploadUrl, {
-      method: "POST",
-      body: formData,
+    // 2. Upload audio file to cloud storage with unique filename
+    const timestamp = new Date().getTime();
+    const uniqueId = `${timestamp}-${Math.random().toString(36).substr(2, 9)}`;
+    const { url: uploadedAudioUrl } = await uploadFile({
+      file: new Blob([audioBuffer], { type: "audio/mpeg" }),
+      uploadPath: "voice/tts", // Changed path to be more specific
+      contentType: "audio/mpeg",
+      fileName: `audio-${uniqueId}.mp3`, // Generate unique filename with proper extension
     });
 
-    if (!uploadResponse.ok) {
-      throw new Error("Failed to upload audio file");
-    }
-
-    const uploadResult = await uploadResponse.json();
-    const uploadedAudioUrl = uploadResult.url;
-    console.log("Uploaded audio URL:", uploadedAudioUrl);
-
-    //3. Store data in Supabase
+    // 3. Store metadata in database
     const supabaseResponse = await uploadToSupabase(
       { email, text, voice, settings },
       uploadedAudioUrl,
@@ -99,12 +116,12 @@ export async function POST(request: NextRequest) {
       settings.model
     );
 
-    //4. If paywall is enabled, reduce user credits
+    // 4. Handle paywall credits
     if (toolConfig.paywall === true && email) {
       await reduceUserCredits(email, toolConfig.credits);
     }
 
-    //5. Return the audio to the front-end
+    // 5. Return audio URL and generation ID
     return NextResponse.json(
       {
         url: uploadedAudioUrl,

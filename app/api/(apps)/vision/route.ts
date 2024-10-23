@@ -6,9 +6,31 @@ import { functionSchema } from "@/app/(apps)/vision/schema";
 import { ChatOpenAI } from "@langchain/openai";
 import { HumanMessage, SystemMessage } from "@langchain/core/messages";
 
+/**
+ * API Route: Handles image analysis using OpenAI's GPT-4 Vision model.
+ *
+ * **Features:**
+ * - Processes images using GPT-4 Vision capabilities
+ * - Supports structured output based on function schemas
+ * - Handles dynamic tool configurations and prompts
+ * - Stores analysis results in Supabase
+ * - Integrates with credit system for paywall management
+ *
+ * **Process:**
+ * 1. Authenticates the user
+ * 2. Loads dynamic tool configurations
+ * 3. Processes image using GPT-4 Vision
+ * 4. Generates structured analysis response
+ * 5. Stores results in database
+ * 6. Manages user credits if paywall is enabled
+ *
+ * @param {NextRequest} request - The incoming request with imageUrl and parameters
+ * @returns {Promise<NextResponse>} JSON response containing the analysis ID
+ */
 export async function POST(request: NextRequest) {
   const supabase = createClient();
 
+  // Authenticate user
   const {
     data: { user },
   } = await supabase.auth.getUser();
@@ -23,30 +45,31 @@ export async function POST(request: NextRequest) {
   }
 
   try {
+    // Extract request parameters
     const requestBody = await request.json();
     const { imageUrl } = requestBody;
     const toolPath = decodeURIComponent(requestBody.toolPath);
 
-    // Dynamically import the toolConfig and prompt based on the tool name
+    // Dynamically import tool configurations
     const { toolConfig } = await import(`@/app/${toolPath}/toolConfig`);
     const { generatePrompt } = await import(`@/app/${toolPath}/prompt`);
 
-    // Generate prompt
+    // Generate prompt for image analysis
     const prompt = generatePrompt(requestBody);
 
-    // Initialize ChatOpenAI
+    // Initialize GPT-4 Vision
     const chat = new ChatOpenAI({
       modelName: toolConfig.aiModel,
       temperature: 0,
     });
 
-    // Prepare the chat with structured output
+    // Setup structured output handling
     const chatWithStructuredOutput = chat.withStructuredOutput(
       functionSchema.parameters
     );
 
-    // Generate response from OpenAI
-    console.log("GPT Vision request received for image: ", imageUrl);
+    // Process image and generate analysis
+    console.log("GPT Vision request received for image:", imageUrl);
     const response = await chatWithStructuredOutput.invoke([
       new SystemMessage(
         toolConfig.systemMessage || "You are a helpful assistant."
@@ -64,24 +87,22 @@ export async function POST(request: NextRequest) {
       }),
     ]);
 
-    console.log("Parsed OpenAI Response: ", response);
+    console.log("Parsed OpenAI Response:", response);
 
-    // The response should now include seoMetadata directly
-    const responseForSupabase = response;
-
+    // Store analysis results in database
     const supabaseResponse = await uploadToSupabase(
       requestBody,
-      responseForSupabase,
+      response, // Direct structured response
       toolConfig.toolPath,
       toolConfig.aiModel
     );
 
-    // PAYWALL - if enabled, reduce user credits after successful generation
+    // Handle paywall credits
     if (toolConfig.paywall === true && userEmail) {
       await reduceUserCredits(userEmail, toolConfig.credits);
     }
 
-    // Return the ID of the stored data, so the client can redirect to the result page
+    // Return analysis ID for client redirect
     return new NextResponse(
       JSON.stringify({
         id: supabaseResponse[0].id,
@@ -89,21 +110,14 @@ export async function POST(request: NextRequest) {
       { status: 200 }
     );
   } catch (error) {
-    if (error instanceof Error) {
-      console.error(error);
-      return new NextResponse(
-        JSON.stringify({ status: "Error", message: error.message }),
-        { status: 500 }
-      );
-    } else {
-      console.error(error);
-      return new NextResponse(
-        JSON.stringify({
-          status: "Error",
-          message: "An unknown error occurred",
-        }),
-        { status: 500 }
-      );
-    }
+    console.error("Error in Vision route:", error);
+    return new NextResponse(
+      JSON.stringify({
+        status: "Error",
+        message:
+          error instanceof Error ? error.message : "An unknown error occurred",
+      }),
+      { status: 500 }
+    );
   }
 }

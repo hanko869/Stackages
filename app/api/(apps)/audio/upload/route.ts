@@ -1,14 +1,29 @@
 import { NextResponse } from "next/server";
-import { PutObjectCommand } from "@aws-sdk/client-s3";
-import s3 from "@/lib/cloudflare";
 import { createClient } from "@/lib/utils/supabase/server";
 import { v4 as uuidv4 } from "uuid";
 import { reduceUserCredits } from "@/lib/hooks/reduceUserCredits";
 import { toolConfig } from "@/app/(apps)/audio/toolConfig";
+import { uploadFile } from "@/lib/hooks/useFileUpload";
 
-export async function POST(request: any) {
+/**
+ * API Route: Handles audio file uploads for the Audio app.
+ *
+ * **Process:**
+ * 1. Authenticates the user.
+ * 2. Extracts the audio file from the request.
+ * 3. Generates a unique file name using UUID.
+ * 4. Calls `uploadFile` to handle the upload.
+ * 5. Stores metadata in the database.
+ * 6. Reduces user credits if paywall is enabled.
+ * 7. Returns the public URL, file path, and recording ID.
+ *
+ * @param {Request} request - The incoming request object.
+ * @returns {Promise<NextResponse>} JSON response containing the uploaded audio details.
+ */
+export async function POST(request: Request) {
   const supabase = createClient();
 
+  // Authenticate user
   const {
     data: { user },
   } = await supabase.auth.getUser();
@@ -17,41 +32,33 @@ export async function POST(request: any) {
   const userEmail = user?.email;
 
   if (!userId) {
-    return NextResponse.json({
-      error: "You must be logged in to upload audio",
-    });
+    return NextResponse.json(
+      { error: "You must be logged in to upload audio." },
+      { status: 401 }
+    );
   }
 
   try {
     const formData = await request.formData();
-    const file = formData.get("file");
-    const uploadPath = formData.get("uploadPath") || "audio";
+    const file = formData.get("file") as File | null;
+    const uploadPath = "audio"; // Fixed upload path for audio files
 
     if (!file) {
-      throw new Error("No files uploaded.");
+      throw new Error("No audio file uploaded.");
     }
 
-    const fileArrayBuffer = await file.arrayBuffer();
-    const originalFileName = file.name;
-    const fileExtension = originalFileName.split(".").pop();
-    const uuid = uuidv4();
-    const fileName = `${originalFileName.replace(
-      `.${fileExtension}`,
-      ""
-    )}-${uuid}.${fileExtension}`;
-    const filePath = `${uploadPath}/${userId}/${fileName}`;
+    const uuid = uuidv4(); // Generate a UUID for file naming
+    const fileName = `audio-${uuid}`; // Unique file name without extension
 
-    const putCommand = new PutObjectCommand({
-      Bucket: process.env.STORAGE_BUCKET,
-      Key: filePath,
-      Body: fileArrayBuffer,
-      ContentType: "audio/wav",
+    // Call uploadFile to handle the upload
+    const { url: publicUrl, path: filePath } = await uploadFile({
+      file,
+      uploadPath,
+      fileName,
+      contentType: file.type, // Use the original content type
     });
 
-    await s3.send(putCommand);
-
-    const publicUrl = `${process.env.STORAGE_PUBLIC_URL}/${filePath}`;
-
+    // Insert audio metadata into Supabase
     const { data, error: insertError } = await supabase
       .from("recordings")
       .insert([
@@ -64,37 +71,37 @@ export async function POST(request: any) {
 
     if (insertError) {
       console.error("Error inserting audio metadata:", insertError);
-      return new NextResponse(
-        JSON.stringify({
+      return NextResponse.json(
+        {
           error: "An error occurred while saving audio metadata.",
-        }),
+        },
         { status: 500 }
       );
     }
 
-    // If paywall is enabled, reduce user credits after successful generation
+    // Reduce user credits if paywall is enabled
     if (toolConfig.paywall === true && userEmail) {
       await reduceUserCredits(userEmail, toolConfig.credits);
     }
 
     const recordingId = data[0].id;
 
-    return new NextResponse(
-      JSON.stringify({
+    return NextResponse.json(
+      {
         url: publicUrl,
         path: filePath,
         recordingId: recordingId,
-      }),
+      },
       { status: 200 }
     );
   } catch (error) {
     console.error("Error in audio upload:", error);
-    return new NextResponse(
-      JSON.stringify({
+    return NextResponse.json(
+      {
         error:
           (error as Error).message ||
           "An error occurred during the audio upload process.",
-      }),
+      },
       { status: 500 }
     );
   }

@@ -1,27 +1,42 @@
 import { generateImageResponse } from "@/lib/services/openai/dalle";
 import { NextResponse, NextRequest } from "next/server";
 import { uploadToSupabase } from "@/lib/hooks/uploadToSupabase";
-import { companyConfig } from "@/config";
 import { reduceUserCredits } from "@/lib/hooks/reduceUserCredits";
 import { authMiddleware } from "@/lib/middleware/authMiddleware";
+import { uploadFile } from "@/lib/hooks/useFileUpload";
 
+/**
+ * API Route: Generates images using OpenAI's DALL·E and handles the response.
+ *
+ * **Process:**
+ * 1. Authenticates the user.
+ * 2. Parses the request body to extract prompts and parameters.
+ * 3. Generates an image using the OpenAI DALL·E API.
+ * 4. Uploads the generated image to cloud storage using `uploadFile`.
+ * 5. Stores metadata in Supabase.
+ * 6. Reduces user credits if paywall is enabled.
+ * 7. Returns the image URL and database record ID to the client.
+ *
+ * @param {NextRequest} request - The incoming request object.
+ * @returns {Promise<NextResponse>} JSON response containing the image URL and ID.
+ */
 export async function POST(request: NextRequest) {
-  // Check if the user is authenticated
+  // Authenticate the user
   const authResponse = await authMiddleware(request);
   if (authResponse.status === 401) return authResponse;
 
   try {
     const requestBody = await request.json();
-    const toolPath = decodeURIComponent(requestBody.toolPath); // get tool path from request body
+    const toolPath = decodeURIComponent(requestBody.toolPath);
 
-    // Dynamically import the toolConfig and prompt based on the tool name
+    // Dynamically import the toolConfig and prompt generator
     const { generatePrompt } = await import(`@/app/${toolPath}/prompt`);
     const { toolConfig } = await import(`@/app/${toolPath}/toolConfig`);
 
-    // Generate prompt and function call
+    // Generate the prompt
     const prompt = generatePrompt(requestBody);
 
-    // Generate response from OpenAI
+    // Generate image using OpenAI DALL·E
     const responseData = await generateImageResponse(
       prompt,
       toolConfig.aiModel
@@ -29,31 +44,15 @@ export async function POST(request: NextRequest) {
 
     // Get the image URL from the OpenAI response
     const imageUrl = responseData.data[0].url;
+    if (typeof imageUrl !== "string") {
+      throw new Error("Invalid image URL received from OpenAI");
+    }
 
-    // Prepare the data for upload
-    const uploadData = {
+    // Upload the image to cloud storage using `uploadFile`
+    const { url: uploadedImageUrl } = await uploadFile({
       imageUrl,
       uploadPath: toolConfig.upload.path,
-    };
-
-    // Get the base upload API URL
-    const apiUrl = `${companyConfig.company.homeUrl}/api/upload/image`;
-
-    // Upload the image to Cloudflare
-    const uploadResponse = await fetch(apiUrl, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(uploadData),
     });
-
-    const uploadResult = await uploadResponse.json();
-
-    // Extract the URL from the upload result
-    const uploadedImageUrl = uploadResult.url;
-
-    // Alternatively, if you dont want to upload image to Cloudflare, you can directly use the image URL from OpenAI response and delete the above code
 
     // Store the response in Supabase
     const supabaseResponse = await uploadToSupabase(
@@ -63,34 +62,28 @@ export async function POST(request: NextRequest) {
       toolConfig.aiModel
     );
 
-    // If paywall is enabled, reduce user credits
+    // Reduce user credits if paywall is enabled
     if (toolConfig.paywall === true) {
       await reduceUserCredits(requestBody.email, toolConfig.credits);
     }
 
-    // Return the ID of the stored data, so the client can redirect to the result page
-    return new NextResponse(
-      JSON.stringify({
+    // Return the ID and image URL to the client
+    return NextResponse.json(
+      {
         id: supabaseResponse[0].id,
-      }),
+        imageUrl: uploadedImageUrl,
+      },
       { status: 200 }
     );
   } catch (error) {
-    if (error instanceof Error) {
-      console.error(error);
-      return new NextResponse(
-        JSON.stringify({ status: "Error", message: error.message }),
-        { status: 500 }
-      );
-    } else {
-      console.error(error);
-      return new NextResponse(
-        JSON.stringify({
-          status: "Error",
-          message: "An unknown error occurred",
-        }),
-        { status: 500 }
-      );
-    }
+    console.error("Error in DALL·E route:", error);
+    return NextResponse.json(
+      {
+        status: "Error",
+        message:
+          error instanceof Error ? error.message : "Internal server error",
+      },
+      { status: 500 }
+    );
   }
 }

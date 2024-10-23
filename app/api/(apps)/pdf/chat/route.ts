@@ -17,12 +17,44 @@ import {
 import { toolConfig } from "@/app/(apps)/pdf/toolConfig";
 
 export const runtime = "edge";
+/**
+ * API Route: Handles PDF chat interactions using LangChain and OpenAI.
+ *
+ * **Features:**
+ * - Streaming responses for real-time chat interaction
+ * - Semantic search in PDF content using vector embeddings
+ * - Conversation history management
+ * - Context-aware responses based on PDF content
+ * - Source tracking for responses
+ *
+ * **Process:**
+ * 1. Authenticates user and manages conversation state
+ * 2. Performs semantic search in PDF content
+ * 3. Generates context-aware responses
+ * 4. Streams response to client
+ * 5. Updates conversation history
+ *
+ * **Technical Details:**
+ * - Uses edge runtime for optimal performance
+ * - Implements RAG (Retrieval Augmented Generation)
+ * - Maintains conversation context
+ * - Handles streaming responses with TransformStream
+ *
+ * @param {NextRequest} request - Contains messages and documentId
+ * @returns {Promise<StreamingTextResponse>} Streaming AI response with metadata
+ */
 
+/**
+ * Combines multiple document chunks into a single context string
+ */
 const combineDocumentsFn = (docs: Document[]) => {
   const serializedDocs = docs.map((doc) => doc.pageContent);
   return serializedDocs.join("\n\n");
 };
 
+/**
+ * Formats chat history into a standardized string format
+ */
 const formatVercelMessages = (chatHistory: VercelChatMessage[]) => {
   const formattedDialogueTurns = chatHistory.map((message) => {
     if (message.role === "user") {
@@ -36,6 +68,9 @@ const formatVercelMessages = (chatHistory: VercelChatMessage[]) => {
   return formattedDialogueTurns.join("\n");
 };
 
+/**
+ * Template for condensing follow-up questions into standalone queries
+ */
 const CONDENSE_QUESTION_TEMPLATE = `Given the following conversation and a follow up question, rephrase the follow up question to be a standalone question, in its original language.
 
 <chat_history>
@@ -48,6 +83,9 @@ const condenseQuestionPrompt = PromptTemplate.fromTemplate(
   CONDENSE_QUESTION_TEMPLATE
 );
 
+/**
+ * Template for generating answers based on context and chat history
+ */
 const ANSWER_TEMPLATE = `You are a smart AI assistant.
 
 Answer the question based only on the following context and chat history:
@@ -65,6 +103,7 @@ const answerPrompt = PromptTemplate.fromTemplate(ANSWER_TEMPLATE);
 
 export async function POST(req: NextRequest) {
   try {
+    // Extract request data and prepare message context
     const body = await req.json();
     const { messages, documentId } = body;
     const previousMessages = messages.slice(
@@ -74,9 +113,9 @@ export async function POST(req: NextRequest) {
     // const previousMessages = messages.slice(0, -1);
     const currentMessageContent = messages[messages.length - 1].content;
 
-    const client = createClient();
+    // Initialize Supabase client and verify user
 
-    // Verify user ID
+    const client = createClient();
     const {
       data: { user },
     } = await client.auth.getUser();

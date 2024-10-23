@@ -45,10 +45,8 @@ export interface ToolConfig {
 
   ////// Storage
   // 'path' is in which directory the files will be stored in the storage bucket
-  // 'apiEndpoint' is the API endpoint used to upload the files. This is used in the upload component. By default it's /api/upload/image
   upload?: {
     path?: string;
-    apiEndpoint?: string;
   };
 
   ////// Form input

@@ -40,7 +40,6 @@ export const toolConfig: ToolConfig = {
   ////// Storage config
   upload: {
     path: "/logos",
-    apiEndpoint: "/api/upload/image",
   },
 
   ////// Form input

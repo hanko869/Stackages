@@ -6,15 +6,48 @@ import { Document } from "langchain/document";
 import { PDFLoader } from "@langchain/community/document_loaders/fs/pdf";
 import { authMiddleware } from "@/lib/middleware/authMiddleware";
 
+/**
+ * API Route: Handles PDF vectorization for semantic search capabilities.
+ *
+ * **Features:**
+ * - Converts PDF content into vector embeddings using OpenAI
+ * - Splits documents into manageable chunks for better search
+ * - Stores embeddings in Supabase for vector similarity search
+ * - Maintains page numbers and document references
+ * - Sanitizes text to remove problematic characters
+ *
+ * **Process:**
+ * 1. Authenticates the user
+ * 2. Fetches PDF from provided URL
+ * 3. Splits document into chunks using LangChain
+ * 4. Generates embeddings using OpenAI
+ * 5. Stores embeddings with metadata in Supabase
+ *
+ * **Technical Details:**
+ * - Chunk size: 1000 characters
+ * - Chunk overlap: 200 characters
+ * - Uses RecursiveCharacterTextSplitter for intelligent splitting
+ * - Maintains document-chunk-page relationships
+ *
+ * @param {NextRequest} request - Contains fileUrl and documentId
+ * @returns {Promise<NextResponse>} Confirmation of successful vectorization
+ */
+
 type DocumentMetadata = {
   document_id: any;
   page: number;
 };
 
+/**
+ * Sanitizes text by removing problematic characters
+ * - Removes null characters
+ * - Removes non-printable ASCII characters
+ * - Preserves common whitespace characters
+ */
 function sanitizeText(text: string): string {
   return text
     .replace(/\u0000/g, "") // Remove null characters
-    .replace(/[^\x20-\x7E\n\r\t]/g, "") // Remove non-printable ASCII characters except common whitespace
+    .replace(/[^\x20-\x7E\n\r\t]/g, "") // Remove non-printable ASCII characters
     .trim();
 }
 

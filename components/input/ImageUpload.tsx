@@ -33,7 +33,7 @@ const ImageUpload: React.FC<any> = ({
       formData.append("image", file);
       formData.append("uploadPath", uploadConfig.path);
 
-      const response = await fetch("/api/upload/image", {
+      const response = await fetch("/api/vision/upload", {
         method: "POST",
         body: formData,
       });

@@ -1,12 +1,27 @@
 import { replicate } from "@/lib/replicate";
 import { NextResponse, NextRequest } from "next/server";
 import { reduceUserCredits } from "@/lib/hooks/reduceUserCredits";
-import { companyConfig } from "@/config";
 import { authMiddleware } from "@/lib/middleware/authMiddleware";
-import { createClient } from "@/lib/utils/supabase/server";
+import { uploadFile } from "@/lib/hooks/useFileUpload";
+import { uploadToSupabase } from "@/lib/hooks/uploadToSupabase";
 
+/**
+ * API Route: Generates images using the SDXL model via Replicate and handles the response.
+ *
+ * **Process:**
+ * 1. Authenticates the user.
+ * 2. Parses the request body to extract prompts and parameters.
+ * 3. Runs the SDXL model on Replicate to generate an image.
+ * 4. Uploads the generated image to cloud storage using `uploadFile`.
+ * 5. Stores metadata in Supabase.
+ * 6. Reduces user credits if paywall is enabled.
+ * 7. Returns the image URL and database record ID to the client.
+ *
+ * @param {NextRequest} request - The incoming request object.
+ * @returns {Promise<NextResponse>} JSON response containing the image URL and ID.
+ */
 export async function POST(request: NextRequest) {
-  // Check if the user is authenticated
+  // Authenticate the user
   const authResponse = await authMiddleware(request);
   if (authResponse.status === 401) return authResponse;
 
@@ -14,13 +29,13 @@ export async function POST(request: NextRequest) {
     const requestBody = await request.json();
     const toolPath = decodeURIComponent(requestBody.toolPath);
 
-    // Dynamically import the toolConfig, prompt and functionCall based on the tool name
+    // Dynamically import the toolConfig based on the tool name
     const { toolConfig } = await import(`@/app/${toolPath}/toolConfig`);
 
     const prompt = requestBody.prompt;
     const negativePrompt = requestBody.negativePrompt;
 
-    // Generate response from Replicate
+    // Generate image using Replicate's SDXL model
     const responseData = await replicate.run(toolConfig.aiModel, {
       input: {
         width: 768,
@@ -40,78 +55,50 @@ export async function POST(request: NextRequest) {
     });
 
     // Get the image URL from the Replicate response
-    const imageUrl = responseData;
+    const imageUrl = Array.isArray(responseData)
+      ? responseData[0]
+      : responseData;
 
-    // Prepare the data for upload
-    const uploadData = {
+    if (typeof imageUrl !== "string") {
+      throw new Error("Invalid image URL received from Replicate");
+    }
+
+    // Upload the image to cloud storage using `uploadFile`
+    const { url: uploadedImageUrl } = await uploadFile({
       imageUrl,
       uploadPath: toolConfig.upload.path,
-    };
-
-    // Get the base URL
-    const apiUrl = `${companyConfig.company.homeUrl}/api/upload/image`;
-
-    // Upload the image to Cloudflare
-    const uploadResponse = await fetch(apiUrl, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(uploadData),
     });
 
-    const uploadResult = await uploadResponse.json();
+    // Store the response in Supabase
+    const supabaseResponse = await uploadToSupabase(
+      requestBody,
+      uploadedImageUrl,
+      toolConfig.toolPath,
+      toolConfig.aiModel
+    );
 
-    // Extract the URL from the upload result
-    const uploadedImageUrl = uploadResult.url;
-
-    // Upload to Supabase
-    const supabase = createClient();
-
-    const insertData: any = {
-      email: requestBody.email,
-      input_data: requestBody,
-      output_data: uploadedImageUrl,
-      type: toolConfig.toolPath,
-      model: toolConfig.aiModel,
-    };
-
-    const { data: supabaseData, error: supabaseError } = await supabase
-      .from("generations")
-      .insert([insertData])
-      .select();
-
-    if (supabaseError) throw new Error(supabaseError.message);
-
-    // If paywall is enabled, reduce user credits after successful generation
+    // Reduce user credits if paywall is enabled
     if (toolConfig.paywall === true) {
       await reduceUserCredits(requestBody.email, toolConfig.credits);
     }
 
-    // Return the ID of the stored data, so the client can redirect to the result page
-    return new NextResponse(
-      JSON.stringify({
-        id: supabaseData[0].id,
+    // Return the ID and image URL to the client
+    return NextResponse.json(
+      {
+        id: supabaseResponse[0].id,
         imageUrl: uploadedImageUrl,
-      }),
+      },
       { status: 200 }
     );
   } catch (error) {
-    if (error instanceof Error) {
-      console.error(error);
-      return new NextResponse(
-        JSON.stringify({ status: "Error", message: error.message }),
-        { status: 500 }
-      );
-    } else {
-      console.error(error);
-      return new NextResponse(
-        JSON.stringify({
-          status: "Error",
-          message: "An unknown error occurred",
-        }),
-        { status: 500 }
-      );
-    }
+    console.error("Error in SDXL route:", error);
+    return NextResponse.json(
+      {
+        status: "Error",
+        message:
+          error instanceof Error ? error.message : "Internal server error",
+      },
+      { status: 500 }
+    );
   }
 }

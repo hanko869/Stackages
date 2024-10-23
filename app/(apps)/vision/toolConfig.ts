@@ -41,7 +41,6 @@ export const toolConfig: ToolConfig = {
   ////// Storage config
   upload: {
     path: "vision",
-    apiEndpoint: "/api/upload/image",
   },
 
   ////// Form input

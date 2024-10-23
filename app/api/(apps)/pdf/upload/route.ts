@@ -1,14 +1,30 @@
 import { NextResponse } from "next/server";
-import { PutObjectCommand } from "@aws-sdk/client-s3";
-import s3 from "@/lib/cloudflare";
 import { createClient } from "@/lib/utils/supabase/server";
 import { v4 as uuidv4 } from "uuid";
 import { reduceUserCredits } from "@/lib/hooks/reduceUserCredits";
 import { toolConfig } from "@/app/(apps)/pdf/toolConfig";
+import { uploadFile } from "@/lib/hooks/useFileUpload";
 
-export async function POST(request: any) {
+/**
+ * API Route: Handles PDF file uploads for the PDF app.
+ *
+ * **Process:**
+ * 1. Authenticates the user.
+ * 2. Checks if the user has reached their document limit.
+ * 3. Extracts the PDF file from the request.
+ * 4. Generates a unique file name using UUID.
+ * 5. Calls `uploadFile` to handle the upload.
+ * 6. Stores document metadata in the database.
+ * 7. Reduces user credits if paywall is enabled.
+ * 8. Returns the public URL, file path, and document ID.
+ *
+ * @param {Request} request - The incoming request object.
+ * @returns {Promise<NextResponse>} JSON response containing the uploaded document details.
+ */
+export async function POST(request: Request) {
   const supabase = createClient();
 
+  // Authenticate user
   const {
     data: { user },
   } = await supabase.auth.getUser();
@@ -17,57 +33,62 @@ export async function POST(request: any) {
   const userEmail = user?.email;
 
   if (!userId) {
-    return NextResponse.json({
-      error: "You must be logged in to ingest data",
-    });
+    return NextResponse.json(
+      { error: "You must be logged in to upload documents." },
+      { status: 401 }
+    );
   }
 
   // Check if user has reached the maximum number of documents
-  // You can remove this check if you don't want to limit the number of documents per user
-  const { data: docCount, error: countError } = await supabase
+  const { count, error: countError } = await supabase
     .from("documents")
-    .select("id", { count: "exact" })
+    .select("*", { count: "exact", head: true })
     .eq("user_id", userId);
 
-  if (countError || (docCount && docCount.length > 10)) {
-    return NextResponse.json({
-      error: "You have reached the maximum (10) number of documents.",
-    });
+  if (countError) {
+    console.error("Error checking document count:", countError);
+    return NextResponse.json(
+      {
+        error: "An error occurred while checking your document count.",
+      },
+      { status: 500 }
+    );
+  }
+
+  if (count && count >= 10) {
+    return NextResponse.json(
+      {
+        error: "You have reached the maximum (10) number of documents.",
+      },
+      { status: 400 }
+    );
   }
 
   try {
     const formData = await request.formData();
-    const file = formData.get("file");
-    const uploadPath = formData.get("uploadPath") || "documents";
+    const file = formData.get("file") as File | null;
+    const uploadPath = "documents"; // Fixed upload path for documents
 
     if (!file) {
-      throw new Error("No files uploaded.");
+      throw new Error("No document file uploaded.");
     }
 
-    const fileArrayBuffer = await file.arrayBuffer();
-    const originalFileName = file.name;
-    const fileExtension = originalFileName.split(".").pop();
-    const uuid = uuidv4();
-    const fileName = `${originalFileName.replace(
-      `.${fileExtension}`,
-      ""
-    )}-${uuid}.${fileExtension}`;
-    const filePath = `${uploadPath}/${userId}/${fileName}`; // Use the dynamic upload path
+    const uuid = uuidv4(); // Generate a UUID for file naming
+    const fileName = `document-${uuid}`; // Unique file name without extension
     const fileSizeMB = (file.size / (1024 * 1024)).toFixed(2); // Convert size to MB
 
     console.log(`File Size: ${fileSizeMB} MB`);
-    console.log("Inserting document metadata...");
+    console.log("Uploading document...");
 
-    const putCommand = new PutObjectCommand({
-      Bucket: process.env.STORAGE_BUCKET,
-      Key: filePath,
-      Body: fileArrayBuffer,
-      ContentType: "application/pdf",
+    // Call uploadFile to handle the upload
+    const { url: publicUrl, path: filePath } = await uploadFile({
+      file,
+      uploadPath,
+      fileName,
+      contentType: file.type, // Use the original content type
     });
 
-    await s3.send(putCommand);
-
-    const publicUrl = `${process.env.STORAGE_PUBLIC_URL}/${filePath}`;
+    console.log("Inserting document metadata...");
 
     // Insert document metadata into Supabase
     const { data, error: insertError } = await supabase
@@ -75,7 +96,7 @@ export async function POST(request: any) {
       .insert([
         {
           file_url: publicUrl,
-          file_name: originalFileName,
+          file_name: file.name,
           user_id: userId,
           size: parseFloat(fileSizeMB),
         },
@@ -84,35 +105,37 @@ export async function POST(request: any) {
 
     if (insertError) {
       console.error("Error inserting document metadata:", insertError);
-      return new NextResponse(
-        JSON.stringify({
+      return NextResponse.json(
+        {
           error: "An error occurred while saving document metadata.",
-        }),
+        },
         { status: 500 }
       );
     }
 
-    // If paywall is enabled, reduce user credits after successful generation
+    // Reduce user credits if paywall is enabled
     if (toolConfig.paywall === true && userEmail) {
       await reduceUserCredits(userEmail, toolConfig.credits);
     }
 
-    return new NextResponse(
-      JSON.stringify({
+    const documentId = data[0].id;
+
+    return NextResponse.json(
+      {
         url: publicUrl,
         path: filePath,
-        documentId: data[0].id,
-      }),
+        documentId: documentId,
+      },
       { status: 200 }
     );
   } catch (error) {
     console.error("Error in file upload:", error);
-    return new NextResponse(
-      JSON.stringify({
+    return NextResponse.json(
+      {
         error:
           (error as Error).message ||
           "An error occurred during the file upload process.",
-      }),
+      },
       { status: 500 }
     );
   }
