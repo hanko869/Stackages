@@ -21,13 +21,11 @@ import {
 } from "@/components/ui/select";
 
 interface DisplayOutputProps {
-  params: { id: string; appName: string };
   toolConfig: ToolConfig;
   generationData: any;
 }
 
 export default function DisplayOutput({
-  params,
   toolConfig,
   generationData,
 }: DisplayOutputProps) {

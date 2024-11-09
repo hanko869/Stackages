@@ -8,9 +8,6 @@ import OutputHero from "@/components/output/OutputHero";
 import OutputSidebar from "@/components/output/OutputSidebar";
 
 interface Params {
-  params: {
-    id: string;
-  };
   generationData: any;
   toolConfig: ToolConfig;
 }
@@ -31,11 +28,7 @@ interface Output {
   }[];
 }
 
-export default function ResponseLayout({
-  params,
-  generationData,
-  toolConfig,
-}: Params) {
+export default function ResponseLayout({ generationData, toolConfig }: Params) {
   const [selectedTab, setSelectedTab] = useState<"creative" | "traditional">(
     "creative"
   );

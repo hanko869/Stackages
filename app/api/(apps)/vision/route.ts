@@ -105,7 +105,7 @@ export async function POST(request: NextRequest) {
     // Return analysis ID for client redirect
     return new NextResponse(
       JSON.stringify({
-        id: supabaseResponse[0].id,
+        slug: supabaseResponse[0].slug,
       }),
       { status: 200 }
     );

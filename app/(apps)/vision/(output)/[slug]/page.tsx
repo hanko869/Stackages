@@ -4,15 +4,15 @@ import { Metadata } from "next";
 import { createClient } from "@/lib/utils/supabase/server";
 
 type Props = {
-  params: { id: string; appName: string };
+  params: { slug: string; appName: string };
 };
 
-async function getGenerationData(id: string) {
+async function getGenerationData(slug: string) {
   const supabase = createClient();
   const { data, error } = await supabase
     .from("generations")
     .select("*")
-    .eq("id", id)
+    .eq("slug", slug)
     .single();
 
   if (error) {
@@ -24,7 +24,7 @@ async function getGenerationData(id: string) {
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  const generationData = await getGenerationData(params.id);
+  const generationData = await getGenerationData(params.slug);
 
   return {
     title: generationData?.title || toolConfig.metadata.title,
@@ -38,13 +38,9 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 export const dynamic = "force-dynamic";
 
 export default async function Page({ params }: Props) {
-  const generationData = await getGenerationData(params.id);
+  const generationData = await getGenerationData(params.slug);
 
   return (
-    <DisplayOutput
-      params={params}
-      toolConfig={toolConfig}
-      generationData={generationData}
-    />
+    <DisplayOutput toolConfig={toolConfig} generationData={generationData} />
   );
 }

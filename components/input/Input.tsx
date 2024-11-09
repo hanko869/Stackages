@@ -105,6 +105,7 @@ export default function InputCapture({
         </div>
         <div className="w-full md:w-1/2">
           {toolConfig.type === "gpt" ||
+          toolConfig.type === "grok" ||
           toolConfig.type === "groq" ||
           toolConfig.type === "claude" ||
           toolConfig.type === "vision" ? (

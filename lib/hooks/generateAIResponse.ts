@@ -40,6 +40,9 @@ export const generateAIResponse = (
       case "claude":
         endpoint = "claude";
         break;
+      case "grok":
+        endpoint = "grok";
+        break;
     }
 
     try {
@@ -59,7 +62,7 @@ export const generateAIResponse = (
         throw new Error("Network response was not ok");
       }
 
-      const { id } = await response.json();
+      const responseData = await response.json();
 
       // If we used DALLE or SDXL, fetch the generated image from Supabase
       if (toolConfig.type === "dalle" || toolConfig.type === "sdxl") {
@@ -67,7 +70,7 @@ export const generateAIResponse = (
         const { data: generations, error } = await supabase
           .from("generations")
           .select("output_data")
-          .eq("id", id);
+          .eq("id", responseData.id);
 
         if (error) {
           throw new Error(`Supabase fetch error: ${error.message}`);
@@ -77,11 +80,13 @@ export const generateAIResponse = (
           setGeneratedImage(generations[0].output_data);
         }
       } else {
-        // Otherwise, redirect to the output page
+        // For navigation, use slug for Grok and id for others
         const baseUrl = toolConfig.company.homeUrl.startsWith("/")
           ? toolConfig.company.homeUrl.slice(1)
           : toolConfig.company.homeUrl;
-        router.push(`/${baseUrl}/${id}`);
+
+        const navigationPath = `/${baseUrl}/${responseData.slug}`;
+        router.push(navigationPath);
       }
     } catch (error) {
       console.error("Failed to generate responses:", error);

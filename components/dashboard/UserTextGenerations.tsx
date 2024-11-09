@@ -28,6 +28,7 @@ import { format } from "date-fns";
 
 interface Generation {
   id: string;
+  slug: string;
   created_at: string;
   model: string;
   type: string;
@@ -38,7 +39,7 @@ interface Generation {
 
 interface UserGenerationsProps {
   generations: Generation[];
-  generationType: "llama" | "gpt" | "vision" | "claude";
+  generationType: "llama" | "gpt" | "vision" | "claude" | "grok";
 }
 
 export function UserGenerations({
@@ -185,6 +186,7 @@ export function UserGenerations({
     llama: "LLaMA",
     gpt: "GPT",
     vision: "Vision",
+    grok: "Grok",
   }[generationType];
 
   return (
@@ -240,7 +242,9 @@ export function UserGenerations({
                     data-state={row.getIsSelected() && "selected"}
                     className="cursor-pointer hover:bg-muted/50"
                     onClick={() =>
-                      router.push(`/apps/${generationType}/${row.original.id}`)
+                      router.push(
+                        `/apps/${generationType}/${row.original.slug}`
+                      )
                     }
                   >
                     {row.getVisibleCells().map((cell) => (
