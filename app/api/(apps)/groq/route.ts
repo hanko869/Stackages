@@ -1,8 +1,7 @@
 import { ChatGroq } from "@langchain/groq";
 import { NextResponse, NextRequest } from "next/server";
-import { uploadToSupabase } from "@/lib/hooks/uploadToSupabase";
-import { reduceUserCredits } from "@/lib/hooks/reduceUserCredits";
 import { authMiddleware } from "@/lib/middleware/authMiddleware";
+import { uploadToSupabase, reduceUserCredits } from "@/lib/db/mutations";
 
 /**
  * API Route: Handles AI interactions using Groq's language models.

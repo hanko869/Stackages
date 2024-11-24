@@ -43,7 +43,7 @@ export async function POST(request: NextRequest) {
 
   // Check document limit
   const { data: docCount, error: countError } = await supabase
-    .from("documents")
+    .from("pdf_documents")
     .select("id", { count: "exact" })
     .eq("user_id", userId);
 
@@ -56,7 +56,7 @@ export async function POST(request: NextRequest) {
   try {
     // Register external document
     const { data, error: insertError } = await supabase
-      .from("documents")
+      .from("pdf_documents")
       .insert([
         {
           file_url: url,

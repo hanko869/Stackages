@@ -1,7 +1,6 @@
 import { NextResponse, NextRequest } from "next/server";
 import { toolConfig } from "@/app/(apps)/voice/toolConfig";
-import { uploadToSupabase } from "@/lib/hooks/uploadToSupabase";
-import { reduceUserCredits } from "@/lib/hooks/reduceUserCredits";
+import { uploadToSupabase, reduceUserCredits } from "@/lib/db/mutations";
 import { createClient } from "@/lib/utils/supabase/server";
 import { uploadFile } from "@/lib/hooks/useFileUpload";
 
@@ -106,6 +105,7 @@ export async function POST(request: NextRequest) {
       uploadPath: "voice/tts", // Changed path to be more specific
       contentType: "audio/mpeg",
       fileName: `audio-${uniqueId}.mp3`, // Generate unique filename with proper extension
+      userId: user.id, // Add user ID for tracking
     });
 
     // 3. Store metadata in database

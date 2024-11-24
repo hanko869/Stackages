@@ -51,6 +51,15 @@ function sanitizeText(text: string): string {
     .trim();
 }
 
+/**
+ * Batch size for processing and inserting embeddings
+ * - Prevents Supabase statement timeout errors
+ * - Reduces memory usage for large documents
+ * - Recommended: 100 chunks per batch for optimal performance
+ * - Adjust based on your Supabase plan and document size
+ */
+const BATCH_SIZE = 100;
+
 export async function POST(request: NextRequest) {
   // Check if the user is authenticated
   const authResponse = await authMiddleware(request);
@@ -76,38 +85,40 @@ export async function POST(request: NextRequest) {
   async function fetchDocumentsFromUrl(url: string) {
     try {
       const response = await fetch(url);
-
-      if (!response.ok) {
+      if (!response.ok)
         throw new Error(`Failed to fetch PDF: ${response.statusText}`);
-      }
 
       const buffer = await response.arrayBuffer();
-      const loader = new PDFLoader(new Blob([buffer]));
+
+      // Improved PDF loader with better text parsing
+      const loader = new PDFLoader(new Blob([buffer]), {
+        splitPages: true, // Keep pages separate for better context
+        parsedItemSeparator: "", // Prevent extra spaces between elements
+      });
+
       const rawDocs = await loader.load();
 
+      // Improved text splitter with comments
       const textSplitter = new RecursiveCharacterTextSplitter({
+        // Larger chunks preserve more context but cost more to embed
         chunkSize: 1000,
+        // Overlap helps maintain context between chunks
         chunkOverlap: 200,
       });
 
       const splitDocs = await textSplitter.splitDocuments(rawDocs);
 
-      const pages = rawDocs.map((doc) => doc.pageContent);
-
-      const documentsWithPages = splitDocs.map((splitDoc) => {
-        const pageIndex = pages.findIndex((page) =>
-          page.includes(splitDoc.pageContent)
-        );
-        return new Document<DocumentMetadata>({
-          pageContent: sanitizeText(splitDoc.pageContent),
-          metadata: {
-            document_id: documentId,
-            page: pageIndex + 1,
-          },
-        });
-      });
-
-      return documentsWithPages;
+      // Create documents with page numbers and sanitized text
+      return splitDocs.map(
+        (doc) =>
+          new Document<DocumentMetadata>({
+            pageContent: sanitizeText(doc.pageContent),
+            metadata: {
+              document_id: documentId,
+              page: doc.metadata.loc?.pageNumber || 1, // Use PDFLoader's built-in page numbers
+            },
+          })
+      );
     } catch (error) {
       console.error("Error fetching documents from URL:", error);
       throw error;
@@ -116,29 +127,47 @@ export async function POST(request: NextRequest) {
 
   try {
     const documents = await fetchDocumentsFromUrl(fileUrl);
-
     const embeddings = new OpenAIEmbeddings();
 
-    // Extract page contents for embedding
-    const texts = documents.map((doc) => doc.pageContent);
+    /**
+     * Process and insert documents in batches to avoid Supabase timeouts
+     *
+     * Why batching is necessary:
+     * 1. Supabase has a default statement timeout (typically 30s)
+     * 2. Large PDFs can generate hundreds/thousands of embeddings
+     * 3. Single transaction with many insertions can exceed timeout
+     *
+     * Batch processing:
+     * - Splits documents into chunks of BATCH_SIZE
+     * - Processes embeddings for each batch
+     * - Inserts each batch separately into Supabase
+     * - Continues even if document has hundreds of pages
+     */
+    for (let i = 0; i < documents.length; i += BATCH_SIZE) {
+      const batch = documents.slice(i, i + BATCH_SIZE);
 
-    // Batch embed all texts in a single request
-    const embeddingsArray = await embeddings.embedDocuments(texts);
+      // Generate embeddings for current batch only
+      const batchEmbeddings = await embeddings.embedDocuments(
+        batch.map((doc) => doc.pageContent)
+      );
 
-    const embeddingsData = documents.map((doc, index) => ({
-      document_id: documentId,
-      content: doc.pageContent,
-      embedding: embeddingsArray[index],
-      metadata: doc.metadata,
-    }));
+      // Prepare data for current batch
+      const batchEmbeddingsData = batch.map((doc, index) => ({
+        document_id: documentId,
+        content: doc.pageContent,
+        embedding: batchEmbeddings[index],
+        metadata: doc.metadata,
+      }));
 
-    const { error: supabaseError } = await supabase
-      .from("embeddings")
-      .insert(embeddingsData);
+      // Insert current batch to Supabase
+      const { error: supabaseError } = await supabase
+        .from("embeddings")
+        .insert(batchEmbeddingsData);
 
-    if (supabaseError) {
-      console.error("Supabase insertion error:", supabaseError);
-      throw supabaseError;
+      if (supabaseError) {
+        console.error("Supabase insertion error:", supabaseError);
+        throw supabaseError;
+      }
     }
 
     return NextResponse.json({

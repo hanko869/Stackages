@@ -14,6 +14,7 @@ interface Generation {
     prompt?: string;
     ideaDescription?: string;
     negativePrompt?: string;
+    toolPath?: string;
   };
   output_data: string;
   type: string;
@@ -21,7 +22,6 @@ interface Generation {
 
 interface UserGenerationsProps {
   generations: Generation[];
-  generationType: "replicate/sdxl" | "openai/dalle";
 }
 
 function formatDate(dateString: string) {
@@ -29,26 +29,14 @@ function formatDate(dateString: string) {
   return format(date, "yyyy-MM-dd HH:mm:ss");
 }
 
-export function UserGenerations({
-  generations,
-  generationType,
-}: UserGenerationsProps) {
+export function UserGenerations({ generations }: UserGenerationsProps) {
   const [selectedImageIndex, setSelectedImageIndex] = useState<number | null>(
     null
   );
   const [currentPage, setCurrentPage] = useState(1);
   const imagesPerPage = 24;
 
-  const filteredGenerations = generations.filter((gen) => {
-    if (generationType === "replicate/sdxl") {
-      return gen.type.includes("sdxl");
-    } else if (generationType === "openai/dalle") {
-      return gen.type.includes("dalle");
-    }
-    return false;
-  });
-
-  const paginatedGenerations = filteredGenerations.slice(
+  const paginatedGenerations = generations.slice(
     (currentPage - 1) * imagesPerPage,
     currentPage * imagesPerPage
   );
@@ -82,7 +70,7 @@ export function UserGenerations({
   }, [selectedImageIndex, paginatedGenerations]);
 
   const generationTitle =
-    generationType === "replicate/sdxl" ? "SDXL" : "DALL-E";
+    generations[0]?.type.split("/").pop()?.toUpperCase() || "Image";
 
   const handlePageChange = (newPage: number) => {
     setCurrentPage(newPage);
@@ -94,10 +82,8 @@ export function UserGenerations({
       <Heading className="text-2xl font-bold">
         Your {generationTitle} Generations
       </Heading>
-      {paginatedGenerations.length === 0 ? (
-        <Paragraph>
-          You haven't created any {generationTitle} generations yet.
-        </Paragraph>
+      {generations.length === 0 ? (
+        <Paragraph>You haven't created any image generations yet.</Paragraph>
       ) : (
         <>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -160,30 +146,25 @@ export function UserGenerations({
                   <p className="font-semibold text-sm text-gray-600">
                     {formatDate(gen.created_at)}
                   </p>
-                  <p className="font-medium">
-                    {generationType === "openai/dalle"
-                      ? "Idea Description:"
-                      : "Prompt:"}
-                  </p>
-                  <p className="text-sm text-gray-700">
-                    {generationType === "openai/dalle"
-                      ? gen.input_data.ideaDescription
-                      : gen.input_data.prompt}
-                  </p>
-                  {generationType === "replicate/sdxl" &&
-                    gen.input_data.negativePrompt && (
-                      <>
-                        <p className="font-medium">Negative Prompt:</p>
-                        <p className="text-sm text-gray-700">
-                          {gen.input_data.negativePrompt}
-                        </p>
-                      </>
-                    )}
+                  {Object.entries(gen.input_data).map(
+                    ([key, value]) =>
+                      value &&
+                      key !== "toolPath" && (
+                        <div key={key}>
+                          <p className="font-medium">
+                            {key.charAt(0).toUpperCase() +
+                              key.slice(1).replace(/([A-Z])/g, " $1")}
+                            :
+                          </p>
+                          <p className="text-sm text-gray-700">{value}</p>
+                        </div>
+                      )
+                  )}
                 </div>
               </div>
             ))}
           </div>
-          {filteredGenerations.length > imagesPerPage && (
+          {generations.length > imagesPerPage && (
             <div className="flex justify-center items-center mt-4 space-x-2">
               <button
                 onClick={() => handlePageChange(1)}
@@ -199,51 +180,50 @@ export function UserGenerations({
               >
                 <ChevronLeft className="h-4 w-4" />
               </button>
-              {[
-                ...Array(Math.ceil(filteredGenerations.length / imagesPerPage)),
-              ].map((_, i) => {
-                const pageNumber = i + 1;
-                if (
-                  pageNumber === 1 ||
-                  pageNumber ===
-                    Math.ceil(filteredGenerations.length / imagesPerPage) ||
-                  (pageNumber >= currentPage - 2 &&
-                    pageNumber <= currentPage + 2)
-                ) {
-                  return (
-                    <button
-                      key={i}
-                      onClick={() => handlePageChange(pageNumber)}
-                      disabled={currentPage === pageNumber}
-                      className={`px-3 py-2 rounded ${
-                        currentPage === pageNumber
-                          ? "bg-primary text-white"
-                          : "bg-gray-200"
-                      }`}
-                    >
-                      {pageNumber}
-                    </button>
-                  );
-                } else if (
-                  pageNumber === currentPage - 3 ||
-                  pageNumber === currentPage + 3
-                ) {
-                  return <span key={i}>...</span>;
+              {[...Array(Math.ceil(generations.length / imagesPerPage))].map(
+                (_, i) => {
+                  const pageNumber = i + 1;
+                  if (
+                    pageNumber === 1 ||
+                    pageNumber ===
+                      Math.ceil(generations.length / imagesPerPage) ||
+                    (pageNumber >= currentPage - 2 &&
+                      pageNumber <= currentPage + 2)
+                  ) {
+                    return (
+                      <button
+                        key={i}
+                        onClick={() => handlePageChange(pageNumber)}
+                        disabled={currentPage === pageNumber}
+                        className={`px-3 py-2 rounded ${
+                          currentPage === pageNumber
+                            ? "bg-primary text-white"
+                            : "bg-gray-200"
+                        }`}
+                      >
+                        {pageNumber}
+                      </button>
+                    );
+                  } else if (
+                    pageNumber === currentPage - 3 ||
+                    pageNumber === currentPage + 3
+                  ) {
+                    return <span key={i}>...</span>;
+                  }
+                  return null;
                 }
-                return null;
-              })}
+              )}
               <button
                 onClick={() =>
                   handlePageChange(
                     Math.min(
                       currentPage + 1,
-                      Math.ceil(filteredGenerations.length / imagesPerPage)
+                      Math.ceil(generations.length / imagesPerPage)
                     )
                   )
                 }
                 disabled={
-                  currentPage ===
-                  Math.ceil(filteredGenerations.length / imagesPerPage)
+                  currentPage === Math.ceil(generations.length / imagesPerPage)
                 }
                 className="px-3 py-2 bg-gray-200 rounded disabled:opacity-50"
               >
@@ -252,12 +232,11 @@ export function UserGenerations({
               <button
                 onClick={() =>
                   handlePageChange(
-                    Math.ceil(filteredGenerations.length / imagesPerPage)
+                    Math.ceil(generations.length / imagesPerPage)
                   )
                 }
                 disabled={
-                  currentPage ===
-                  Math.ceil(filteredGenerations.length / imagesPerPage)
+                  currentPage === Math.ceil(generations.length / imagesPerPage)
                 }
                 className="px-3 py-2 bg-gray-200 rounded disabled:opacity-50 text-sm"
               >

@@ -114,16 +114,13 @@ export function UserGenerations({
   const filteredGenerations = React.useMemo(() => {
     return generations.filter(
       (gen) =>
-        gen.type.toLowerCase().includes(generationType.toLowerCase()) &&
-        (gen.title
+        gen.title?.toLowerCase().includes(debouncedFilterValue.toLowerCase()) ||
+        gen.subtitle
           ?.toLowerCase()
           .includes(debouncedFilterValue.toLowerCase()) ||
-          gen.subtitle
-            ?.toLowerCase()
-            .includes(debouncedFilterValue.toLowerCase()) ||
-          gen.model.toLowerCase().includes(debouncedFilterValue.toLowerCase()))
+        gen.model.toLowerCase().includes(debouncedFilterValue.toLowerCase())
     );
-  }, [generations, generationType, debouncedFilterValue]);
+  }, [generations, debouncedFilterValue]);
 
   const table = useReactTable({
     data: filteredGenerations,
@@ -181,17 +178,9 @@ export function UserGenerations({
     []
   );
 
-  const generationTitle = {
-    claude: "Claude",
-    llama: "LLaMA",
-    gpt: "GPT",
-    vision: "Vision",
-    grok: "Grok",
-  }[generationType];
-
   return (
     <div className="space-y-4">
-      <h2 className="text-3xl font-bold">Your {generationTitle} Generations</h2>
+      <h2 className="text-3xl font-bold">Your Generations</h2>
       <div className="flex items-center py-4">
         <Input
           placeholder="Filter generations..."

@@ -3,6 +3,26 @@
 // Make sure you read the comments and follow the instructions carefully.
 // Each model has different requirements and configurations (some use storage, some generate forms, ...), so make sure you read the documentation.
 
+export type AIModelType =
+  | "vision"
+  | "dalle"
+  | "sdxl"
+  | "groq"
+  | "claude"
+  | "llama"
+  | "grok"
+  | "gpt";
+
+export type GenerationModelType =
+  | "vision"
+  | "dalle"
+  | "sdxl"
+  | "groq"
+  | "claude"
+  | "llama"
+  | "grok"
+  | "gpt";
+
 export interface ToolConfig {
   ////// Base config of your site
   // This information will be used to populate the information in your Navbar & Footer + to select the theme.
@@ -54,14 +74,14 @@ export interface ToolConfig {
   // Inputs should match inputs captured in prompt.ts
 
   // These inputs will also be read by:
-  //// components/output/DisplayOutput.tsx
+  //// components/output/OutputLayout.tsx
   //// components/output/OutputSidebar.tsx
   //// components/output/OutputHero.tsx
 
   // Have a look at the following demo app examples to see how this is used:
   //// openai/gpt, openai/vision, openai/dalle, openai/sdxl and groq/llama
 
-  type?: string; // type of app - based on this it knows what to include in the form + which API to call.
+  type?: AIModelType; // type of app - based on this it knows what to include in the form + which API to call.
   // type options: 'vision' for GPT-4o, 'dalle', 'sdxl', 'groq', 'claude' & 'gpt'.
   fields?: FormFields[]; // Array of form fields
   submitText?: string; // Text for the submit button

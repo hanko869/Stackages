@@ -5,11 +5,11 @@ import {
   updateUserProfile,
   updatePurchasesTable,
   addUserCredits,
-} from "@/lib/hooks/userData";
+} from "@/lib/db/payments";
 
 // Initialize Stripe with the secret key from environment variables
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: "2024-09-30.acacia",
+  apiVersion: "2024-11-20.acacia",
 });
 
 // Ensure dynamic content generation for each request

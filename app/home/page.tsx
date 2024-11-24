@@ -1,7 +1,7 @@
 import { companyConfig } from "@/config";
 import { createClient } from "@/lib/utils/supabase/server";
 import { redirect } from "next/navigation";
-import { loops } from "@/lib/loops";
+import { loops } from "@/lib/clients/loops";
 import HeroDemos from "@/components/heros/HeroDemos";
 import Navbar from "@/components/navbars/Navbar-1";
 import Footer from "@/components/footers/Footer-1";

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import s3 from "@/lib/cloudflare";
+import s3 from "@/lib/clients/cloudflare";
 import { DeleteObjectCommand } from "@aws-sdk/client-s3";
 import { createClient } from "@/lib/utils/supabase/server";
 import { authMiddleware } from "@/lib/middleware/authMiddleware";
@@ -37,7 +37,7 @@ export async function POST(request: NextRequest) {
 
   // Retrieve document metadata
   const { data: document, error } = await supabase
-    .from("documents")
+    .from("pdf_documents")
     .select("file_url")
     .eq("id", documentId)
     .single();
@@ -55,7 +55,7 @@ export async function POST(request: NextRequest) {
   try {
     // Delete from cloud storage and database
     await s3.send(deleteCommand);
-    await supabase.from("documents").delete().eq("id", documentId);
+    await supabase.from("pdf_documents").delete().eq("id", documentId);
     return NextResponse.json({ success: true }, { status: 200 });
   } catch (error) {
     console.error("Error deleting document:", error);

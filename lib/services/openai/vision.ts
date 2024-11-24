@@ -1,4 +1,4 @@
-import { openai } from "@/lib/openai";
+import { openai } from "@/lib/clients/openai";
 
 export async function generateVisionResponse(
   prompt: any,

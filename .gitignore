@@ -7,6 +7,10 @@
 .pnp.js
 .yarn/install-state.gz
 
+# pnpm specific output
+.pnpm-debug.log
+pnpm-lock.yaml
+
 # testing
 /coverage
 
@@ -42,3 +46,7 @@ next-env.d.ts
 
 # Sentry Config File
 .env.sentry-build-plugin
+
+# Supabase
+supabase/.temp/
+supabase/config.toml

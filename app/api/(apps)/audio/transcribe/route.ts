@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/utils/supabase/server";
 import fetch from "node-fetch";
-import { replicate } from "@/lib/replicate";
+import { replicate } from "@/lib/clients/replicate";
 
 /**
  * API Route: Transcribes audio files using Replicate's Whisper model.

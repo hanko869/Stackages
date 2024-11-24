@@ -5,7 +5,7 @@ import {
   updateUserProfile,
   updatePurchasesTable,
   addUserCredits,
-} from "@/lib/hooks/userData";
+} from "@/lib/db/payments";
 
 const isError = (error: unknown): error is Error => {
   return error instanceof Error;

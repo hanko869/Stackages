@@ -1,7 +1,6 @@
 import { generateImageResponse } from "@/lib/services/openai/dalle";
 import { NextResponse, NextRequest } from "next/server";
-import { uploadToSupabase } from "@/lib/hooks/uploadToSupabase";
-import { reduceUserCredits } from "@/lib/hooks/reduceUserCredits";
+import { uploadToSupabase, reduceUserCredits } from "@/lib/db/mutations";
 import { authMiddleware } from "@/lib/middleware/authMiddleware";
 import { uploadFile } from "@/lib/hooks/useFileUpload";
 
@@ -21,9 +20,12 @@ import { uploadFile } from "@/lib/hooks/useFileUpload";
  * @returns {Promise<NextResponse>} JSON response containing the image URL and ID.
  */
 export async function POST(request: NextRequest) {
-  // Authenticate the user
+  // Authenticate the user and get user data
   const authResponse = await authMiddleware(request);
   if (authResponse.status === 401) return authResponse;
+
+  // Get user from the middleware-enhanced request
+  const user = (request as any).user;
 
   try {
     const requestBody = await request.json();
@@ -52,6 +54,8 @@ export async function POST(request: NextRequest) {
     const { url: uploadedImageUrl } = await uploadFile({
       imageUrl,
       uploadPath: toolConfig.upload.path,
+      skipMetadata: false,
+      userId: user.id,
     });
 
     // Store the response in Supabase

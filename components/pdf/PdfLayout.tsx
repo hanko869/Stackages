@@ -112,7 +112,10 @@ export default function PdfLayout({
 
   return (
     <section className="relative min-h-screen">
-      <div className="flex flex-col md:flex-row items-center no-scrollbar">
+      <div className="flex flex-col md:flex-row items-start no-scrollbar">
+        <div className="w-full md:w-1/2 no-scrollbar">
+          <PdfAppInfo />
+        </div>
         <div className="w-full px-8 md:w-1/2">
           {userEmail ? (
             <>
@@ -135,9 +138,6 @@ export default function PdfLayout({
           ) : (
             <Login />
           )}
-        </div>
-        <div className="w-full md:w-1/2 no-scrollbar">
-          <PdfAppInfo />
         </div>
       </div>
     </section>

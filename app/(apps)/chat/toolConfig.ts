@@ -4,12 +4,12 @@ import { ToolConfig } from "@/lib/types/toolconfig";
 export const toolConfig: ToolConfig = {
   ////// Base config
   company: {
-    name: "Chat",
+    name: "Advanced AI Assistant",
     theme: "anotherwrapper",
     homeUrl: "/apps/chat",
     appUrl: "/apps/chat",
     description:
-      "Build your own chatbot GPT wrapper using OpenAI's GPT-4o mini (or GPT-4o), LangChain and Supabase for memory.",
+      "Advanced AI Assistant with multiple models, multimodal capabilities, web search, and document generation features.",
     logo: "https://cdn3.iconfinder.com/data/icons/aami-web-internet/64/aami4-68-512.png",
     navbarLinks: [
       { label: "App", href: `/apps/chat` },
@@ -21,9 +21,9 @@ export const toolConfig: ToolConfig = {
 
   ////// Metadata for SEO
   metadata: {
-    title: "Build a chat bot using GPT-4o mini | AnotherWrapper",
+    title: "Advanced AI Assistant | Multiple Models, Multimodal, Web Search",
     description:
-      "Build your own chat bot GPT wrapper using OpenAI's GPT-4o mini (or GPT-4o), LangChain and Supabase for memory.",
+      "AI Assistant powered by OpenAI, Anthropic and Groq, featuring multimodal capabilities, web search via Serper API and Jina AI, and document generation with Canvas.",
     og_image: "https://anotherwrapper.com/og.png",
     canonical: "https://anotherwrapper.com/apps/chat",
   },
@@ -35,7 +35,6 @@ export const toolConfig: ToolConfig = {
   ////// Location
   toolPath: "(apps)/chat",
 
-  ////// AI config
+  ////// Default AI model
   aiModel: "gpt-4o-mini",
-  messagesToInclude: 10,
 };

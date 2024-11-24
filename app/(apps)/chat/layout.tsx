@@ -1,8 +1,7 @@
-import { FC, ReactNode } from "react";
 import { toolConfig } from "./toolConfig";
-import { createClient } from "@/lib/utils/supabase/server";
-import PaymentModal from "@/components/paywall/Payment";
-import SidebarWrapper from "@/components/chat/ChatSideBar";
+import { UnifiedSidebar } from "@/components/dashboard/UnifiedSidebar";
+import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
+import { getSession } from "@/lib/db/cached-queries";
 
 export const metadata = {
   title: toolConfig.metadata.title,
@@ -15,44 +14,24 @@ export const metadata = {
   },
 };
 
-interface LayoutProps {
-  children: ReactNode;
-}
-
-const Layout: FC<LayoutProps> = async ({ children }) => {
-  const supabase = createClient();
-
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  let credits;
-
-  if (user && toolConfig.paywall) {
-    const { data: profile } = await supabase
-      .from("profiles")
-      .select("*")
-      .eq("id", user.id)
-      .single();
-
-    credits = profile.credits;
-
-    if (credits < toolConfig.credits) {
-      return <PaymentModal />;
-    }
-  }
+export default async function Layout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  const user = await getSession();
 
   return (
-    <div
-      className="flex bg-white min-h-screen h-screen"
-      data-theme={toolConfig.company.theme}
-    >
-      <SidebarWrapper user={user} />
-      <main className="mt-10 flex-1 flex flex-col p-2 md:p-8 overflow-hidden">
-        {children}
-      </main>
-    </div>
+    <SidebarProvider>
+      <UnifiedSidebar user={user} showChatHistory={true} />
+      <div className="lg:pl-2 lg:pt-2 bg-gray-100 flex-1 overflow-y-auto">
+        <SidebarInset
+          data-theme="anotherwrapper"
+          className="flex-1 bg-white lg:rounded-tl-xl border border-transparent lg:border-neutral-200 overflow-y-auto"
+        >
+          {children}
+        </SidebarInset>
+      </div>
+    </SidebarProvider>
   );
-};
-
-export default Layout;
+}

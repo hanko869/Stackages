@@ -1,41 +1,29 @@
 import PdfLayout from "@/components/pdf/PdfLayout";
 import PaymentModal from "@/components/paywall/Payment";
-import { createClient } from "@/lib/utils/supabase/server";
 import { toolConfig } from "./toolConfig";
 import Section from "@/components/Section";
-import Footer from "@/components/footers/Footer-1";
+import {
+  getSession,
+  getUserCredits,
+  getUserPdfDocuments,
+} from "@/lib/db/cached-queries";
 
 export default async function Page() {
-  const supabase = createClient();
-
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const user = await getSession();
 
   let credits;
   let documents;
 
   if (user) {
     if (toolConfig.paywall) {
-      const { data: profile } = await supabase
-        .from("profiles")
-        .select("*")
-        .eq("id", user.id)
-        .single();
-
-      credits = profile.credits;
+      credits = await getUserCredits(user.id);
 
       if (credits < toolConfig.credits) {
         return <PaymentModal />;
       }
     }
 
-    const { data: userDocuments } = await supabase
-      .from("documents")
-      .select("*")
-      .eq("user_id", user.id);
-
-    documents = userDocuments;
+    documents = await getUserPdfDocuments(user.id);
   }
 
   return (

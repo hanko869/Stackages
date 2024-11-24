@@ -128,7 +128,7 @@ export async function POST(req: NextRequest) {
 
     // Check if the document has an existing conversation
     const { data: document, error: documentError } = await client
-      .from("documents")
+      .from("pdf_documents")
       .select("conversation_id")
       .eq("id", documentId)
       .single();
@@ -155,7 +155,7 @@ export async function POST(req: NextRequest) {
       chatId = newConversation.id;
 
       await client
-        .from("documents")
+        .from("pdf_documents")
         .update({ conversation_id: chatId })
         .eq("id", documentId);
     }

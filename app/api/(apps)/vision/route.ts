@@ -1,7 +1,6 @@
 import { NextResponse, NextRequest } from "next/server";
 import { createClient } from "@/lib/utils/supabase/server";
-import { uploadToSupabase } from "@/lib/hooks/uploadToSupabase";
-import { reduceUserCredits } from "@/lib/hooks/reduceUserCredits";
+import { uploadToSupabase, reduceUserCredits } from "@/lib/db/mutations";
 import { functionSchema } from "@/app/(apps)/vision/schema";
 import { ChatOpenAI } from "@langchain/openai";
 import { HumanMessage, SystemMessage } from "@langchain/core/messages";

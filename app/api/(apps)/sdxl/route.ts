@@ -1,9 +1,8 @@
-import { replicate } from "@/lib/replicate";
+import { replicate } from "@/lib/clients/replicate";
 import { NextResponse, NextRequest } from "next/server";
-import { reduceUserCredits } from "@/lib/hooks/reduceUserCredits";
 import { authMiddleware } from "@/lib/middleware/authMiddleware";
 import { uploadFile } from "@/lib/hooks/useFileUpload";
-import { uploadToSupabase } from "@/lib/hooks/uploadToSupabase";
+import { uploadToSupabase, reduceUserCredits } from "@/lib/db/mutations";
 
 /**
  * API Route: Generates images using the SDXL model via Replicate and handles the response.
@@ -21,9 +20,12 @@ import { uploadToSupabase } from "@/lib/hooks/uploadToSupabase";
  * @returns {Promise<NextResponse>} JSON response containing the image URL and ID.
  */
 export async function POST(request: NextRequest) {
-  // Authenticate the user
+  // Authenticate the user and get user data
   const authResponse = await authMiddleware(request);
   if (authResponse.status === 401) return authResponse;
+
+  // Get user from the middleware-enhanced request
+  const user = (request as any).user;
 
   try {
     const requestBody = await request.json();
@@ -67,6 +69,8 @@ export async function POST(request: NextRequest) {
     const { url: uploadedImageUrl } = await uploadFile({
       imageUrl,
       uploadPath: toolConfig.upload.path,
+      skipMetadata: false,
+      userId: user.id,
     });
 
     // Store the response in Supabase
@@ -79,7 +83,7 @@ export async function POST(request: NextRequest) {
 
     // Reduce user credits if paywall is enabled
     if (toolConfig.paywall === true) {
-      await reduceUserCredits(requestBody.email, toolConfig.credits);
+      await reduceUserCredits(user.email, toolConfig.credits);
     }
 
     // Return the ID and image URL to the client

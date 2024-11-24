@@ -49,7 +49,7 @@ const freeTools = [
 
 const navlinks = [
   { href: "/apps/audio/app", label: "Audio AI", icon: IconMicrophone },
-  { href: "/apps/llama/app", label: "Groq Llama", icon: IconBolt },
+  { href: "/apps/llama/app", label: "Llama 3", icon: IconBolt },
   { href: "/apps/gpt/app", label: "OpenAI GPT", icon: IconMessage },
   { href: "/apps/dalle/app", label: "DALL-E", icon: IconPhoto },
   { href: "/apps/vision/app", label: "Vision AI", icon: IconEye },
@@ -64,14 +64,15 @@ const navlinks = [
     icon: IconMessage2,
     isExternal: true,
   },
-  { href: "/apps/claude", label: "Claude AI", icon: IconRobot },
+  { href: "/apps/claude", label: "Claude 3.5 Sonnet", icon: IconRobot },
+  // { href: "/apps/grok", label: "Grok xAI", icon: IconBolt },
   { href: "/apps/pdf", label: "PDF AI", icon: IconFileText },
   { href: "/apps/voice", label: "Voice AI", icon: IconMicrophone },
 ];
 
 const landingPages = [
   { href: "/apps/audio", label: "Audio AI", icon: IconMicrophone },
-  { href: "/apps/llama", label: "Groq Llama", icon: IconBolt },
+  { href: "/apps/llama", label: "Llama 3", icon: IconBolt },
   { href: "/apps/gpt", label: "OpenAI GPT", icon: IconMessage },
   { href: "/apps/dalle", label: "DALL-E", icon: IconPhoto },
   { href: "/apps/vision", label: "Vision AI", icon: IconEye },
@@ -161,7 +162,7 @@ const Navigation = React.memo(
     );
 
     return (
-      <div className="flex flex-col space-y-1 my-10 relative z-40">
+      <div className="flex flex-col space-y-1 mt-4 relative z-40">
         {renderLinks(navlinks, "Demo apps")}
         {renderLinks(landingPages, "Landing pages", true)}
         {renderLinks(freeTools, "Free tools", true)}
@@ -200,6 +201,12 @@ export const Sidebar = ({ user }: { user: User | null }) => {
     []
   );
 
+  const handleBadgeClick = () => {
+    if (isMobile()) {
+      setOpen(false);
+    }
+  };
+
   return (
     <>
       <div
@@ -213,7 +220,7 @@ export const Sidebar = ({ user }: { user: User | null }) => {
             <Navigation setOpen={handleSetOpen} user={user} />
           </div>
           <div className="space-y-2">
-            <div onClick={() => isMobile() && setOpen(false)}>
+            <div onClick={handleBadgeClick}>
               <Badge
                 href="https://anotherwrapper.lemonsqueezy.com/buy/c1a15bd7-58b0-4174-8d1a-9bca6d8cb511"
                 text="Build your startup"

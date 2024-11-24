@@ -1,7 +1,6 @@
 import { ChatOpenAI } from "@langchain/openai";
-import { uploadToSupabase } from "@/lib/hooks/uploadToSupabase";
 import { NextResponse, NextRequest } from "next/server";
-import { reduceUserCredits } from "@/lib/hooks/reduceUserCredits";
+import { uploadToSupabase, reduceUserCredits } from "@/lib/db/mutations";
 import { authMiddleware } from "@/lib/middleware/authMiddleware";
 
 /**

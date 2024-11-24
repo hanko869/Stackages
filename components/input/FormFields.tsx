@@ -7,7 +7,6 @@ import {
   SelectContent,
   SelectItem,
   SelectValue,
-  SelectLabel,
   SelectGroup,
 } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
@@ -30,15 +29,17 @@ export const RenderFields: React.FC<RenderFieldsProps> = ({
   handleChange,
 }) => {
   return (
-    <>
+    <div className="space-y-8">
       {fields.map((field) => (
-        <div key={field.name} className="mb-5 w-full">
+        <div key={field.name} className="relative">
           <Label
             htmlFor={field.name}
-            className="block text-xs font-semibold mb-2"
+            className="text-sm text-gray-600 font-medium mb-2 block"
           >
             {field.label}
+            {field.required && <span className="text-primary ml-1">*</span>}
           </Label>
+
           {field.type === "input" && (
             <Input
               value={formData[field.name!]}
@@ -48,7 +49,9 @@ export const RenderFields: React.FC<RenderFieldsProps> = ({
               placeholder={field.placeholder || "Enter text"}
               id={field.name}
               name={field.name}
-              className="w-full"
+              className="w-full bg-gray-50/50 border border-gray-100 rounded-lg px-4 py-3 
+                placeholder:text-gray-400 text-gray-900 focus:ring-2 focus:ring-primary/10 
+                focus:border-primary/30 transition-all duration-200"
             />
           )}
 
@@ -60,9 +63,12 @@ export const RenderFields: React.FC<RenderFieldsProps> = ({
               placeholder={field.placeholder || "Enter text"}
               id={field.name}
               name={field.name}
-              className="p-2 text-xs w-full"
+              className="w-full min-h-[120px] bg-gray-50/50 border border-gray-100 rounded-lg 
+                px-4 py-3 placeholder:text-gray-400 text-gray-900 focus:ring-2 
+                focus:ring-primary/10 focus:border-primary/30 transition-all duration-200"
             />
           )}
+
           {field.type === "select" && (
             <Select
               value={formData[field.name!]}
@@ -75,14 +81,21 @@ export const RenderFields: React.FC<RenderFieldsProps> = ({
                 )
               }
             >
-              <SelectTrigger className="w-full">
-                <SelectValue placeholder="Please make a selection" />
+              <SelectTrigger
+                className="w-full bg-gray-50/50 border border-gray-100 rounded-lg px-4 py-3 
+                  text-gray-900 focus:ring-2 focus:ring-primary/10 focus:border-primary/30 
+                  transition-all duration-200"
+              >
+                <SelectValue placeholder="Select an option" />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent className="border-gray-100 rounded-xl overflow-hidden">
                 <SelectGroup>
-                  <SelectLabel>{field.label}</SelectLabel>
                   {field.options?.map((option) => (
-                    <SelectItem key={option} value={option}>
+                    <SelectItem
+                      key={option}
+                      value={option}
+                      className="hover:bg-gray-50 focus:bg-gray-50 hover:text-gray-900 focus:text-gray-900 px-4 py-2.5 cursor-pointer"
+                    >
                       {option}
                     </SelectItem>
                   ))}
@@ -92,6 +105,6 @@ export const RenderFields: React.FC<RenderFieldsProps> = ({
           )}
         </div>
       ))}
-    </>
+    </div>
   );
 };

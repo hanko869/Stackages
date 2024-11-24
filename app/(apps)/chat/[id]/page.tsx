@@ -1,56 +1,57 @@
-import { ChatWindow } from "@/components/chat/ChatWindow";
-import { createClient } from "@/lib/utils/supabase/server";
-import ChatWelcome from "@/components/chat/ChatWelcome";
+import { cookies } from "next/headers";
+import { notFound } from "next/navigation";
 
-type MessageRole =
-  | "function"
-  | "data"
-  | "system"
-  | "user"
-  | "assistant"
-  | "tool";
+import { Chat as PreviewChat } from "@/components/chat/chat";
+import {
+  getChatById,
+  getMessagesByChatId,
+  getSession,
+} from "@/lib/db/cached-queries";
+import { convertToUIMessages } from "@/lib/ai/chat";
+import { availableModels } from "@/lib/ai/models";
+import { toolConfig } from "../toolConfig";
 
-interface Message {
-  id: string;
-  role: MessageRole;
-  content: string;
-}
+export default async function Page(props: { params: Promise<any> }) {
+  // Get user session
+  const user = await getSession();
 
-export default async function Page({ params }: { params: { id: string } }) {
-  const supabase = createClient();
-  const { data, error } = await supabase
-    .from("conversations")
-    .select("conversation")
-    .eq("id", params.id)
-    .single();
+  // No paywall check here, it's handled in the chat route + the chat component for more flexibility
 
-  if (error) {
-    console.error("Failed to fetch conversation:", error);
-    return <div>Failed to load conversation.</div>;
+  // Extract chat ID from URL parameters
+  const params = await props.params;
+  const { id } = params;
+
+  // Fetch chat data and verify it exists
+  const chat = await getChatById(id);
+  if (!chat) {
+    notFound();
   }
 
-  // Ensure each message has an `id` and correct role type
-  const initialMessages: Message[] = data.conversation.map(
-    (message: any, index: number) => ({
-      id: index.toString(), // or generate a unique id for each message
-      role: message.role as MessageRole,
-      content: message.content,
-    })
-  );
+  // Only allow access to own chats for authenticated users
+  if (user && user.id !== chat.user_id) {
+    notFound();
+  }
+
+  // Fetch chat messages from database
+  const messagesFromDb = await getMessagesByChatId(id);
+
+  // Get user preferences from cookies
+  const cookieStore = await cookies();
+  const modelIdFromCookie = cookieStore.get("model-id")?.value;
+  const browseEnabledFromCookie =
+    cookieStore.get("browse-enabled")?.value === "true";
+
+  const selectedModelId =
+    availableModels.find((model) => model.id === modelIdFromCookie)?.id ||
+    toolConfig.aiModel;
 
   return (
-    <ChatWindow
-      endpoint="/api/chat"
-      placeholder="I'm a confused Indie Hacker. I can help you. But I'm not sure what I'm doing!"
-      chatId={params.id}
-      initialMessages={initialMessages}
-      emptyStateComponent={
-        initialMessages.length === 0 ? (
-          <ChatWelcome />
-        ) : (
-          <div>Start your conversation...</div>
-        )
-      }
+    <PreviewChat
+      id={chat.id}
+      initialMessages={convertToUIMessages(messagesFromDb)}
+      selectedModelId={selectedModelId}
+      initialBrowseEnabled={browseEnabledFromCookie}
+      isAuthenticated={!!user}
     />
   );
 }

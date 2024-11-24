@@ -35,7 +35,7 @@ export const toolConfig: ToolConfig = {
   toolPath: "(apps)/claude",
 
   ////// AI config
-  aiModel: "claude-3-5-sonnet-20240620",
+  aiModel: "claude-3-5-sonnet-latest",
   systemMessage:
     "You are an experienced business consultant. You are helping a solopreneur create a comprehensive business plan. Only reply with the JSON, do not return anything else.",
 

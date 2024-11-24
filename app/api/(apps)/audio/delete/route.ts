@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import s3 from "@/lib/cloudflare";
+import s3 from "@/lib/clients/cloudflare";
 import { createClient } from "@/lib/utils/supabase/server";
 import { DeleteObjectCommand } from "@aws-sdk/client-s3";
 

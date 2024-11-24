@@ -1,9 +1,9 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/utils/supabase/server";
 import { v4 as uuidv4 } from "uuid";
-import { reduceUserCredits } from "@/lib/hooks/reduceUserCredits";
 import { toolConfig } from "@/app/(apps)/audio/toolConfig";
 import { uploadFile } from "@/lib/hooks/useFileUpload";
+import { reduceUserCredits } from "@/lib/db/mutations";
 
 /**
  * API Route: Handles audio file uploads for the Audio app.
@@ -56,6 +56,7 @@ export async function POST(request: Request) {
       uploadPath,
       fileName,
       contentType: file.type, // Use the original content type
+      userId: user.id,
     });
 
     // Insert audio metadata into Supabase

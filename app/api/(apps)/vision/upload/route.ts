@@ -23,9 +23,12 @@ import { v4 as uuidv4 } from "uuid";
  * @returns {Promise<NextResponse>} JSON response containing the uploaded image URL and path.
  */
 export async function POST(request: NextRequest) {
-  // Authenticate user
+  // Authenticate user and get user data
   const authResponse = await authMiddleware(request);
   if (authResponse.status === 401) return authResponse;
+
+  // Get user from the middleware-enhanced request
+  const user = (request as any).user;
 
   try {
     const contentType = request.headers.get("content-type");
@@ -57,6 +60,7 @@ export async function POST(request: NextRequest) {
     const uploadOptions = {
       uploadPath,
       fileName,
+      userId: user.id,
       ...(file ? { file } : {}),
       ...(imageUrl ? { imageUrl } : {}),
     };

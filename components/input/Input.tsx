@@ -57,52 +57,7 @@ export default function InputCapture({
 
   return (
     <section className="pb-20 w-full mx-auto">
-      <div className="flex flex-col md:flex-row items-stretch gap-8 relative">
-        <div className="w-full md:w-1/2 flex">
-          {!userEmail ? (
-            <div className="w-full flex items-center justify-center">
-              <Login />
-            </div>
-          ) : (
-            <div className="flex items-center w-full justify-center">
-              <form onSubmit={handleSubmit} className="w-full">
-                <div className="flex flex-col items-center">
-                  <div className="w-full mb-5">
-                    {toolConfig.type === "vision" && (
-                      <Upload
-                        uploadConfig={toolConfig.upload}
-                        setImageUrl={setImageUrl}
-                      />
-                    )}
-                    <RenderFields
-                      fields={toolConfig.fields!}
-                      formData={formData}
-                      handleChange={handleChange}
-                    />
-                  </div>
-                </div>
-                <div className="mb-5 flex justify-center">
-                  <Button
-                    disabled={
-                      (!imageUrl && toolConfig.type === "vision") || loading
-                    }
-                    type="submit"
-                    className="bg-accent hover:bg-accent/80 text-white w-full"
-                  >
-                    {!loading ? (
-                      toolConfig.submitText
-                    ) : (
-                      <span className="flex items-center justify-center">
-                        <LoaderCircle className="w-4 h-4 mr-2 text-green-500 animate-spin" />
-                        {toolConfig.submitTextGenerating}
-                      </span>
-                    )}
-                  </Button>
-                </div>
-              </form>
-            </div>
-          )}
-        </div>
+      <div className="flex flex-col md:flex-row items-start gap-8 relative">
         <div className="w-full md:w-1/2">
           {toolConfig.type === "gpt" ||
           toolConfig.type === "grok" ||
@@ -125,7 +80,52 @@ export default function InputCapture({
               </p>
             </AppInfo>
           ) : null}
-        </div>{" "}
+        </div>
+        <div className="w-full md:w-1/2">
+          {!userEmail ? (
+            <div className="w-full">
+              <Login />
+            </div>
+          ) : (
+            <div className="mt-5 w-full">
+              <form onSubmit={handleSubmit} className="w-full">
+                <div className="flex flex-col">
+                  <div className="w-full mb-5">
+                    {toolConfig.type === "vision" && (
+                      <Upload
+                        uploadConfig={toolConfig.upload}
+                        setImageUrl={setImageUrl}
+                      />
+                    )}
+                    <RenderFields
+                      fields={toolConfig.fields!}
+                      formData={formData}
+                      handleChange={handleChange}
+                    />
+                  </div>
+                </div>
+                <div className="mb-5">
+                  <Button
+                    disabled={
+                      (!imageUrl && toolConfig.type === "vision") || loading
+                    }
+                    type="submit"
+                    className="bg-accent hover:bg-accent/80 text-white w-full"
+                  >
+                    {!loading ? (
+                      toolConfig.submitText
+                    ) : (
+                      <span className="flex items-center justify-center">
+                        <LoaderCircle className="w-4 h-4 mr-2 text-green-500 animate-spin" />
+                        {toolConfig.submitTextGenerating}
+                      </span>
+                    )}
+                  </Button>
+                </div>
+              </form>
+            </div>
+          )}
+        </div>
       </div>
     </section>
   );

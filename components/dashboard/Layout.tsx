@@ -1,15 +1,12 @@
 import { Suspense } from "react";
-import { Sidebar } from "@/components/dashboard/Sidebar";
-import { twMerge } from "tailwind-merge";
 import { ContentFooter } from "@/components/dashboard/Footer";
 import Footer from "@/components/footers/Footer-1";
 import { createClient } from "@/lib/utils/supabase/server";
 import { Container } from "@/components/dashboard/Container";
-import { Heading } from "@/components/dashboard/Heading";
-import { Paragraph } from "@/components/dashboard/Paragraph";
-import { Highlight } from "@/components/dashboard/Highlight";
 import LoadingSpinner from "@/components/Loading";
 import { ToolConfig } from "@/lib/types/toolconfig";
+import { companyConfig } from "@/config";
+import { UnifiedSidebar } from "@/components/dashboard/UnifiedSidebar";
 
 interface DashboardLayoutProps {
   children: React.ReactNode;
@@ -29,8 +26,11 @@ export async function DashboardLayout({
 
   return (
     <>
-      <div className="flex overflow-hidden bg-gray-100">
-        <Sidebar user={user} />
+      <div
+        className="flex overflow-hidden bg-gray-100"
+        data-theme={companyConfig.company.theme}
+      >
+        <UnifiedSidebar user={user} showChatHistory={false} />
         <div className="lg:pl-2 lg:pt-2 bg-gray-100 flex-1 overflow-y-auto">
           <div className="flex-1 bg-white lg:rounded-tl-xl border border-transparent lg:border-neutral-200 overflow-y-auto">
             <Suspense fallback={<LoadingSpinner />}>
@@ -39,7 +39,7 @@ export async function DashboardLayout({
                 showGreeting={showGreeting}
                 user={user}
               >
-                {children}
+                <div className="pt-5">{children}</div>
               </MainContent>
             </Suspense>
             <ContentFooter />
@@ -85,20 +85,42 @@ async function MainContent({
   return (
     <Container>
       {showGreeting && (
-        <>
-          <span className="text-4xl">👋🏼</span>
-          <Heading className="font-black">
-            {user ? `Hi ${user.email}!` : "Hi there!"}
-          </Heading>
-          <Paragraph className="max-w-xl mt-4">
-            Hope you're having a great day! You can try out the app below.
-            {credits !== undefined && (
-              <Highlight> You still have {credits} credits left.</Highlight>
-            )}
-          </Paragraph>
-        </>
+        <div className="flex items-center justify-between mb-8 px-6 py-4 bg-gray-50/50 rounded-xl border border-gray-100">
+          <div className="flex items-center gap-3">
+            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-white border border-gray-100">
+              <span className="text-lg">👋🏼</span>
+            </div>
+            <div className="flex items-baseline gap-2">
+              {user ? (
+                <>
+                  <span className="text-sm text-gray-500">Welcome back,</span>
+                  <span className="text-sm font-medium text-gray-700">
+                    {user.email}
+                  </span>
+                </>
+              ) : (
+                <>
+                  <span className="text-sm font-semibold text-gray-500">
+                    Hi there,
+                  </span>
+                  <span className="text-sm text-gray-500">
+                    log in below to start using the app
+                  </span>
+                </>
+              )}
+            </div>
+          </div>
+          {credits !== undefined && (
+            <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-white border border-gray-100">
+              <span className="w-1.5 h-1.5 rounded-full bg-green-500/40 animate-pulse" />
+              <span className="text-sm text-gray-600">
+                {credits.toLocaleString()} credits
+              </span>
+            </div>
+          )}
+        </div>
       )}
-      {children}
+      {children}{" "}
     </Container>
   );
 }

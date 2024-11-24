@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/utils/supabase/server";
 import { v4 as uuidv4 } from "uuid";
-import { reduceUserCredits } from "@/lib/hooks/reduceUserCredits";
+import { reduceUserCredits } from "@/lib/db/mutations";
 import { toolConfig } from "@/app/(apps)/pdf/toolConfig";
 import { uploadFile } from "@/lib/hooks/useFileUpload";
 
@@ -41,10 +41,9 @@ export async function POST(request: Request) {
 
   // Check if user has reached the maximum number of documents
   const { count, error: countError } = await supabase
-    .from("documents")
+    .from("pdf_documents")
     .select("*", { count: "exact", head: true })
     .eq("user_id", userId);
-
   if (countError) {
     console.error("Error checking document count:", countError);
     return NextResponse.json(
@@ -86,13 +85,14 @@ export async function POST(request: Request) {
       uploadPath,
       fileName,
       contentType: file.type, // Use the original content type
+      userId,
     });
 
     console.log("Inserting document metadata...");
 
     // Insert document metadata into Supabase
     const { data, error: insertError } = await supabase
-      .from("documents")
+      .from("pdf_documents")
       .insert([
         {
           file_url: publicUrl,

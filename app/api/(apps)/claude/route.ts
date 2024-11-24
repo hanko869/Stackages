@@ -1,7 +1,6 @@
 import { ChatAnthropic } from "@langchain/anthropic";
 import { NextResponse, NextRequest } from "next/server";
-import { uploadToSupabase } from "@/lib/hooks/uploadToSupabase";
-import { reduceUserCredits } from "@/lib/hooks/reduceUserCredits";
+import { uploadToSupabase, reduceUserCredits } from "@/lib/db/mutations";
 import { authMiddleware } from "@/lib/middleware/authMiddleware";
 
 /**

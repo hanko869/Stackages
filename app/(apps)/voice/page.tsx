@@ -1,34 +1,37 @@
 import Layout from "@/components/voice/Layout";
 import PaymentModal from "@/components/paywall/Payment";
-import { createClient } from "@/lib/utils/supabase/server";
 import { toolConfig } from "./toolConfig";
+import {
+  getSession,
+  getUserCredits,
+  getUserGenerations,
+} from "@/lib/db/cached-queries";
 
 export default async function Page() {
-  const supabase = createClient();
+  // Get user session using cached query
+  const user = await getSession();
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
+  // Set up variables for user data
   let credits;
+  let generations: any[] = [];
 
-  if (user && toolConfig.paywall) {
-    const { data: profile } = await supabase
-      .from("profiles")
-      .select("*")
-      .eq("id", user.id)
-      .single();
+  if (user?.email) {
+    if (toolConfig.paywall) {
+      // Get credits using cached query
+      credits = await getUserCredits(user.id);
 
-    credits = profile.credits;
-
-    if (credits < toolConfig.credits) {
-      return <PaymentModal />;
+      if (credits < toolConfig.credits) {
+        return <PaymentModal />;
+      }
     }
+
+    // Get user generations using cached query
+    generations = await getUserGenerations(user.email, toolConfig.type);
   }
 
   return (
     <>
-      <Layout userEmail={user ? user.email : undefined} />
+      <Layout userEmail={user?.email} />
     </>
   );
 }
