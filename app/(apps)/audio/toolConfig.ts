@@ -36,7 +36,7 @@ export const toolConfig: ToolConfig = {
   toolPath: "(apps)/audio",
 
   ////// AI config
-  aiModel: "llama3-groq-70b-8192-tool-use-preview", // model to use for generating summaries of transcript
+  aiModel: "llama-3.1-70b-versatile", // model to use for generating summaries of transcript
   systemMessage:
     "The following is a transcript of a voice message. Extract a title, summary, and action items from it and answer in JSON in this format: {title: string, summary: string, actionItems: [string, string, ...]}. Never return an empty title! Only reply with the JSON, do not return anything else.",
 

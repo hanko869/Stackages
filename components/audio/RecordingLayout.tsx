@@ -11,9 +11,7 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import AudioInfo from "@/components/audio/AudioInfo";
-import { ArrowRight } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
 
 export default function RecordingDesktop({ data }: { data: any }) {
   const { recording, summary, transcript } = data;
@@ -59,122 +57,107 @@ export default function RecordingDesktop({ data }: { data: any }) {
   const { generatingTitle, title } = summary ?? {};
 
   return (
-    <>
-      <div className="max-width mt-5 flex flex-col md:flex-row items-center justify-between">
-        <div className="space-y-1 mb-4 mt-4">
-          <h4
-            className={`text-sm font-medium leading-none ${
-              generatingTitle && "animate-pulse"
-            }`}
-          >
-            {generatingTitle ? "Generating Title..." : title ?? "Untitled Note"}
-          </h4>
-          <p className="text-sm text-muted-foreground">
-            You'll find a summary and action items below.
-          </p>
-        </div>
-        <div className="flex items-center justify-center">
-          <p className="text-xs italic opacity-80">
-            {formatTimestamp(new Date(_creationTime).getTime())}
-          </p>
-        </div>
+    <div className="max-w-5xl mx-auto px-4">
+      {/* Header */}
+      <div className="mb-8">
+        <Button
+          variant="ghost"
+          onClick={() => router.push("/audio/app")}
+          className="mb-4"
+        >
+          <ArrowLeft className="w-4 h-4 mr-2" />
+          Back to recordings
+        </Button>
+        <h1
+          className={`text-2xl font-semibold mb-2 ${
+            generatingTitle && "animate-pulse"
+          }`}
+        >
+          {generatingTitle ? "Generating Title..." : title ?? "Untitled Note"}
+        </h1>
+        <p className="text-sm text-muted-foreground">
+          {formatTimestamp(new Date(_creationTime).getTime())}
+        </p>
       </div>
-      <div className="flex flex-col md:flex-row">
-        <div className="w-full md:w-1/2">
-          <div className="flex flex-col">
-            <div className="p-4">
-              <Tabs defaultValue="transcript" className="w-full">
-                <TabsList className="flex space-x-1 bg-muted p-1 rounded-md">
-                  <TabsTrigger value="transcript">Your Transcript</TabsTrigger>
-                  <TabsTrigger value="summary">Summary</TabsTrigger>
-                  <TabsTrigger value="action-items">Action Items</TabsTrigger>
-                </TabsList>
-                <TabsContent value="transcript">
-                  <div className="text-sm">{transcript.transcript}</div>
-                </TabsContent>
-                <TabsContent value="summary">
-                  {summary?.summary ? (
-                    <div className="text-sm">{summary.summary}</div>
-                  ) : (
-                    <>
-                      <div className="text-sm">No summary available.</div>
-                      <Button
-                        className="text-sm bg-primary text-white mt-4"
-                        onClick={generateSummary}
-                        disabled={isGeneratingSummary}
-                      >
-                        {isGeneratingSummary
-                          ? "Generating summary..."
-                          : "Generate summary"}
-                        <ArrowRight className="w-4 h-4 ml-2" />
-                      </Button>
-                    </>
-                  )}
-                </TabsContent>
-                <TabsContent value="action-items">
-                  {summary?.action_items ? (
-                    <div className="text-sm">
-                      <ul className="list-disc pl-5">
-                        {Array.isArray(summary.action_items)
-                          ? summary.action_items.map(
-                              (item: string, index: number) => (
-                                <li key={index}>{item}</li>
-                              )
-                            )
-                          : JSON.parse(summary.action_items).map(
-                              (item: string, index: number) => (
-                                <li key={index}>{item}</li>
-                              )
-                            )}
-                      </ul>
-                    </div>
-                  ) : (
-                    <>
-                      <div className="text-sm">No action items available.</div>
-                      <Button
-                        className="text-sm bg-primary text-white mt-4"
-                        onClick={generateSummary}
-                        disabled={isGeneratingSummary}
-                      >
-                        {isGeneratingSummary
-                          ? "Generating summary..."
-                          : "Generate summary"}
-                        <ArrowRight className="w-4 h-4 ml-2" />
-                      </Button>
-                    </>
-                  )}
-                </TabsContent>
-              </Tabs>
-            </div>
-            <Dialog open={isOpen} onOpenChange={setIsOpen}>
-              <DialogContent className="sm:max-w-[425px]">
-                <DialogHeader>
-                  <DialogTitle>Generating Summary</DialogTitle>
-                  <DialogDescription>
-                    Please wait while we generate the summary for your
-                    recording.
-                  </DialogDescription>
-                </DialogHeader>
-                <div className="flex flex-col items-center justify-center py-8">
-                  <span className="loading loading-ring loading-lg"></span>
-                  <p className="mt-4 text-sm text-black">
-                    Processing, please wait...
-                  </p>
-                </div>
-              </DialogContent>
-            </Dialog>
+
+      {/* Main Content */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        {/* Left Column - Transcript */}
+        <div className="bg-white rounded-xl p-6 shadow-sm border">
+          <h2 className="text-lg font-medium mb-4">Transcript</h2>
+          <div className="prose prose-sm max-w-none">
+            {transcript.transcript}
           </div>
-          <a href="/audio/app" className="flex justify-center">
-            <Button className="text-sm bg-primary text-white mt-4">
-              Back to recordings
-              <ArrowRight className="w-4 h-4 ml-2" />
-            </Button>
-          </a>
         </div>
-        <div className="w-full md:w-1/2">
-          <AudioInfo />
+
+        {/* Right Column - Summary & Action Items */}
+        <div className="space-y-6">
+          {/* Summary Section */}
+          <div className="bg-white rounded-xl p-6 shadow-sm border">
+            <h2 className="text-lg font-medium mb-4">Summary</h2>
+            {summary?.summary ? (
+              <div className="prose prose-sm max-w-none">{summary.summary}</div>
+            ) : (
+              <div className="space-y-4">
+                <p className="text-sm text-muted-foreground">
+                  No summary available.
+                </p>
+                <Button
+                  className="w-full"
+                  onClick={generateSummary}
+                  disabled={isGeneratingSummary}
+                >
+                  {isGeneratingSummary
+                    ? "Generating summary..."
+                    : "Generate summary"}
+                </Button>
+              </div>
+            )}
+          </div>
+
+          {/* Action Items Section */}
+          <div className="bg-white rounded-xl p-6 shadow-sm border">
+            <h2 className="text-lg font-medium mb-4">Action Items</h2>
+            {summary?.action_items ? (
+              <ul className="space-y-2">
+                {(Array.isArray(summary.action_items)
+                  ? summary.action_items
+                  : JSON.parse(summary.action_items)
+                ).map((item: string, index: number) => (
+                  <li key={index} className="flex items-start">
+                    <span className="inline-block w-5 h-5 bg-primary/10 text-primary rounded-full text-xs flex items-center justify-center mr-3 mt-0.5">
+                      {index + 1}
+                    </span>
+                    <span className="text-sm">{item}</span>
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p className="text-sm text-muted-foreground">
+                No action items available.
+              </p>
+            )}
+          </div>
         </div>
       </div>
-    </>
+
+      {/* Loading Dialog */}
+      <Dialog open={isOpen} onOpenChange={setIsOpen}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle>Generating Summary</DialogTitle>
+            <DialogDescription>
+              Please wait while we generate the summary for your recording.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="flex flex-col items-center justify-center py-8">
+            <div className="w-12 h-12 border-4 border-primary/20 border-t-primary rounded-full animate-spin" />
+            <p className="mt-4 text-sm text-muted-foreground">
+              Processing, please wait...
+            </p>
+          </div>
+        </DialogContent>
+      </Dialog>
+    </div>
   );
 }
