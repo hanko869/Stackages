@@ -7,7 +7,13 @@ export async function getRecordingByIdQuery(client: Client, id: string) {
     .eq("id", id)
     .single();
 
-  if (error) throw error;
+  if (error) {
+    // Handle PGRST116 specifically
+    if (error.code === "PGRST116") {
+      return null;
+    }
+    throw error;
+  }
   return data;
 }
 
@@ -21,7 +27,12 @@ export async function getTranscriptByRecordingIdQuery(
     .eq("recording_id", recordingId)
     .single();
 
-  if (error) throw error;
+  if (error) {
+    if (error.code === "PGRST116") {
+      return null;
+    }
+    throw error;
+  }
   return data;
 }
 

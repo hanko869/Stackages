@@ -9,38 +9,56 @@ import {
 
 export const getRecordingById = async (id: string) => {
   const supabase = await getSupabase();
-  return unstable_cache(
-    async () => getRecordingByIdQuery(supabase, id),
-    ["recording", id],
-    {
-      tags: [`recording_${id}`],
-      revalidate: 10,
-    }
-  )();
+  try {
+    const result = await unstable_cache(
+      async () => getRecordingByIdQuery(supabase, id),
+      ["recording", id],
+      {
+        tags: [`recording_${id}`],
+        revalidate: 10,
+      }
+    )();
+    return result;
+  } catch (error) {
+    console.error("Error fetching recording:", error);
+    return null;
+  }
 };
 
 export const getTranscriptByRecordingId = async (recordingId: string) => {
   const supabase = await getSupabase();
-  return unstable_cache(
-    async () => getTranscriptByRecordingIdQuery(supabase, recordingId),
-    ["transcript", recordingId],
-    {
-      tags: [`transcript_${recordingId}`],
-      revalidate: 10,
-    }
-  )();
+  try {
+    const result = await unstable_cache(
+      async () => getTranscriptByRecordingIdQuery(supabase, recordingId),
+      ["transcript", recordingId],
+      {
+        tags: [`transcript_${recordingId}`],
+        revalidate: 10,
+      }
+    )();
+    return result;
+  } catch (error) {
+    console.error("Error fetching transcript:", error);
+    return null;
+  }
 };
 
 export const getSummaryByRecordingId = async (recordingId: string) => {
   const supabase = await getSupabase();
-  return unstable_cache(
-    async () => getSummaryByRecordingIdQuery(supabase, recordingId),
-    ["summary", recordingId],
-    {
-      tags: [`summary_${recordingId}`],
-      revalidate: 10,
-    }
-  )();
+  try {
+    const result = await unstable_cache(
+      async () => getSummaryByRecordingIdQuery(supabase, recordingId),
+      ["summary", recordingId],
+      {
+        tags: [`summary_${recordingId}`],
+        revalidate: 10,
+      }
+    )();
+    return result;
+  } catch (error) {
+    console.error("Error fetching summary:", error);
+    return null;
+  }
 };
 
 export const getUserRecordings = async (userId: string) => {
