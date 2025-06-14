@@ -1,4 +1,14 @@
 {
+  "name": "stackages",
+  "version": "1.0.0",
+  "description": "Neural-Enhanced AI Solutions for the Digital Frontier",
+  "author": "Stackages Team",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/hanko869/Stackages.git"
+  },
+  "homepage": "https://stackages.io",
   "private": true,
   "scripts": {
     "dev": "next dev",
