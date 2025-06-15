@@ -1,5 +1,10 @@
-import Stripe from "stripe";
+// Stripe payment route - commented out until Stripe is configured
+// Uncomment this file when you're ready to set up Stripe payments
+
 import { NextRequest, NextResponse } from "next/server";
+
+/*
+import Stripe from "stripe";
 import {
   checkUserProfile,
   updateUserProfile,
@@ -139,4 +144,12 @@ async function handleCheckoutSessionCompleted(
   }
 
   console.log("User profile updated successfully");
+}
+*/
+
+// Temporary placeholder export to prevent build errors
+export async function POST(request: NextRequest) {
+  return NextResponse.json({ 
+    message: "Stripe payments not configured yet" 
+  }, { status: 501 });
 }
