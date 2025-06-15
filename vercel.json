@@ -1,4 +1,7 @@
 {
-  "rootDirectory": "anotherwrapper-premium",
-  "framework": "nextjs"
+  "framework": "nextjs",
+  "buildCommand": "cd anotherwrapper-premium && npm run build",
+  "outputDirectory": "anotherwrapper-premium/.next",
+  "installCommand": "cd anotherwrapper-premium && npm install",
+  "devCommand": "cd anotherwrapper-premium && npm run dev"
 } 
