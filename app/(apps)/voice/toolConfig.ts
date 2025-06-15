@@ -5,7 +5,7 @@ export const toolConfig: ToolConfig = {
   ////// Base config
   company: {
     name: "TextToSpeech",
-    theme: "anotherwrapper",
+    theme: "cyberpunk",
     homeUrl: "/apps/voice",
     appUrl: "/apps/voice",
     description:
@@ -21,11 +21,11 @@ export const toolConfig: ToolConfig = {
 
   ////// SEO stuff
   metadata: {
-    title: "Text to speech AI wrapper demo app | AnotherWrapper",
+    title: "Neural Voice Synthesis | Stackages",
     description:
       "Build your own text-to-speech app using ElevenLabsIO! Convert text to speech in 26+ languages and choose over 1000 voices!",
-    og_image: "https://anotherwrapper.com/og.png",
-    canonical: "https://anotherwrapper.com/apps/voice",
+    og_image: "https://stackages.io/og.png",
+    canonical: "https://stackages.io/apps/voice",
   },
 
   ////// Paywall

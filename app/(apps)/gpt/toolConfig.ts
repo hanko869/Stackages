@@ -20,11 +20,11 @@ export const toolConfig: ToolConfig = {
   },
   ////// SEO stuff
   metadata: {
-    title: "GPT-4o mini AI wrapper demo app | AnotherWrapper",
+    title: "GPT-4o mini AI wrapper demo app | Stackages",
     description:
       "Build your own GPT-4o Mini AI wrapper in minutes with this demo app that uses OpenAI, LangChain & Supabase.",
-    og_image: "https://anotherwrapper.com/og.png",
-    canonical: "https://anotherwrapper.com/apps/gpt",
+    og_image: "https://Stackages.com/og.png",
+    canonical: "https://Stackages.com/apps/gpt",
   },
 
   ////// Paywall

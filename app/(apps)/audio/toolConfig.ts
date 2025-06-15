@@ -21,11 +21,11 @@ export const toolConfig: ToolConfig = {
 
   ////// SEO stuff
   metadata: {
-    title: "Voice to notes AI wrapper | AnotherWrapper",
+    title: "Voice to notes AI wrapper | Stackages",
     description:
       "Build an AI wrapper that generates transcripts from your voice recordings using Whisper on Replicate and summarize them using Llama 3 from Groq.",
-    og_image: "https://anotherwrapper.com/og.png",
-    canonical: "https://anotherwrapper.com/apps/audio",
+    og_image: "https://Stackages.com/og.png",
+    canonical: "https://Stackages.com/apps/audio",
   },
 
   ////// Paywall

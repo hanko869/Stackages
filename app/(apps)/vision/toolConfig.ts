@@ -21,11 +21,11 @@ export const toolConfig: ToolConfig = {
 
   ////// SEO stuff
   metadata: {
-    title: "GPT-4o vision AI wrapper demo application | AnotherWrapper",
+    title: "GPT-4o vision AI wrapper demo application | Stackages",
     description:
       "Build your own GPT-4o vision AI wrapper in minutes with this demo app that uses OpenAI, Cloudflare R2 & Supabase.",
-    og_image: "https://anotherwrapper.com/og.png",
-    canonical: "https://anotherwrapper.com/apps/vision",
+    og_image: "https://Stackages.com/og.png",
+    canonical: "https://Stackages.com/apps/vision",
   },
 
   ////// Paywall

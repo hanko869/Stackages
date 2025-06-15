@@ -2,15 +2,15 @@
 export const companyConfig = {
   ////// Base config used mainly for layout (@/components/navbar/Navbar-1.tsx and @/components/footer/Footer-1.tsx)
   company: {
-    name: "AnotherWrapper",
-    theme: "anotherwrapper",
-    homeUrl: "https://anotherwrapper.com",
+    name: "Stackages",
+    theme: "cyberpunk",
+    homeUrl: "https://stackages.io",
     appUrl: "/",
     description: "Build your AI startup in hours using our demo apps!",
     logo: "/logo.png",
     navbarLinks: [
-      { label: "Home", href: "https://anotherwrapper.com" },
-      { label: "Other apps", href: "https://anotherwrapper.com" },
+      { label: "Home", href: "https://stackages.io" },
+      { label: "AI Solutions", href: "https://stackages.io/#apps-section" },
       { label: "Blog", href: "/blog" },
     ],
   },
@@ -40,8 +40,8 @@ export const defaultOgImage = "/og.png";
 export const favicon = "/favicon.ico";
 
 // LEGAL STUFF
-export const privacyPolicyUrl = "https://anotherwrapper.com/privacy";
-export const tosUrl = "https://anotherwrapper.com/terms";
+export const privacyPolicyUrl = "https://stackages.io/privacy";
+export const tosUrl = "https://stackages.io/terms";
 
 // Auth
 export const authImage = "/hero.webp";

@@ -5,7 +5,7 @@ import { loops } from "@/lib/clients/loops";
 import HeroDemos from "@/components/heros/HeroDemos";
 import Navbar from "@/components/navbars/Navbar-1";
 import Footer from "@/components/footers/Footer-1";
-import Apps from "@/components/anotherwrapper/Apps";
+import Apps from "@/components/apps/Apps";
 
 export default async function Page() {
   const supabase = createClient();

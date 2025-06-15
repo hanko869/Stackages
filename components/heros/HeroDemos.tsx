@@ -13,8 +13,8 @@ export default function Hero() {
     window.ttq.track("ViewContent", {
       contents: [
         {
-          content_id: "anotherwrapper-boilerplate-small", // string. ID of the product. Example: "1077218".
-          content_name: "anotherwrapper-small", // string. The name of the page or product. Example: "shirt".
+          content_id: "stackages-boilerplate-small", // string. ID of the product. Example: "1077218".
+          content_name: "stackages-small", // string. The name of the page or product. Example: "shirt".
         },
       ],
       value: "137", // number. Value of the order or items sold. Example: 100.
@@ -22,7 +22,7 @@ export default function Hero() {
     });
 
     // Scroll to Pricing
-    window.location.href = "https://anotherwrapper.com/#pricing";
+    window.location.href = "https://stackages.io/#pricing";
   };
 
   return (
@@ -56,7 +56,7 @@ export default function Hero() {
         </Button>
         <a
           className="btn btn-ghost text-content"
-          href="https://docs.anotherwrapper.com"
+          href="https://docs.stackages.io"
           target="_blank"
         >
           <BookIcon className="w-4 h-4 mr-2" />

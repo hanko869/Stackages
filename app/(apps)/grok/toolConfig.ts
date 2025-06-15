@@ -5,7 +5,7 @@ export const toolConfig: ToolConfig = {
   ////// Base config
   company: {
     name: "Launch Day Simulator",
-    theme: "anotherwrapper",
+    theme: "cyberpunk",
     homeUrl: "/apps/grok",
     appUrl: "/apps/grok",
     description:
@@ -20,11 +20,11 @@ export const toolConfig: ToolConfig = {
   },
   ////// SEO stuff
   metadata: {
-    title: "Brand Twitter AI | Grok xAI Wrapper | AnotherWrapper",
+    title: "Brand Twitter AI | Grok xAI Wrapper | Stackages",
     description:
       "Generate hilarious brand Twitter personalities using xAI's Grok model. Our AI wrapper analyzes your brand's Twitter potential with tone scores, predicted tweets, and PR disaster scenarios.",
-    og_image: "https://anotherwrapper.com/og.png",
-    canonical: "https://anotherwrapper.com/apps/grok",
+    og_image: "https://Stackages.com/og.png",
+    canonical: "https://Stackages.com/apps/grok",
   },
 
   ////// Paywall

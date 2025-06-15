@@ -125,13 +125,13 @@ async function handleOrderCreated(
     // Define purchase type based on variant ID
     switch (variantId) {
       case 373993:
-        purchaseType = "anotherwrapper-core";
+        purchaseType = "stackages-core";
         break;
       case 373998:
-        purchaseType = "anotherwrapper-premium";
+        purchaseType = "stackages-premium";
         break;
       case 452443:
-        purchaseType = "anotherwrapper-enterprise";
+        purchaseType = "stackages-enterprise";
         break;
       case 404332:
         purchaseType = "credits-small";

@@ -33,7 +33,7 @@ import { cn } from "@/lib/utils";
 const suggestedActions = [
   {
     title: "Build a Youtube Script Generator",
-    label: "How can I build a Youtube Script Generator with AnotherWrapper?",
+    label: "How can I build a Youtube Script Generator with Stackages?",
     action:
       "I want to build a Youtube Script Generator. Which demo app can I use? It should generate text scripts, the audio for each scene + thumbnails for the video.",
     icon: "📹",

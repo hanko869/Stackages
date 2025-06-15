@@ -152,22 +152,6 @@ const config = {
     styled: true,
     themes: [
       {
-        anotherwrapper: {
-          primary: "#18181b",
-          secondary: "#0f0f0f",
-          accent: "#171717",
-          neutral: "#707070",
-          "base-100": "#f6f6f3",
-          "base-200": "#dbdad7",
-          "base-300": "#767574",
-          "base-content": "#121212",
-          "primary-content": "#ffffff",
-          "secondary-content": "#ffffff",
-          info: "#3abff8",
-          success: "#36d399",
-          warning: "#fbbd23",
-          error: "#f87272",
-        },
         whisper: {
           primary: "#84aac1",
           secondary: "#30475E",

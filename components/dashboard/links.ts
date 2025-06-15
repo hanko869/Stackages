@@ -10,6 +10,7 @@ import {
   IconCurrencyDollar,
   IconPencil,
   IconHome,
+  IconSparkles,
 } from "@tabler/icons-react";
 
 type NavLink = {
@@ -22,14 +23,14 @@ type NavLink = {
 
 export const freeTools = [
   {
-    href: "https://anotherwrapper.com/tools/llm-pricing",
+    href: "https://stackages.io/tools/llm-pricing",
     label: "LLM Pricing Comparison",
     icon: IconCurrencyDollar,
   },
   {
-    href: "https://anotherwrapper.com/tools/ai-app-generator",
+    href: "https://stackages.io/tools/ai-app-generator",
     label: "AI App Generator",
-    icon: IconRobot,
+    icon: IconSparkles,
   },
 ];
 
@@ -73,17 +74,17 @@ export const landingPages = [
 export const otherLinks = [
   { href: "/", label: "Home", icon: IconHome },
   {
-    href: "https://docs.anotherwrapper.com",
+    href: "https://docs.stackages.io",
     label: "Documentation",
     icon: IconFileText,
   },
   {
-    href: "https://anotherwrapper.lemonsqueezy.com/affiliates",
+    href: "https://stackages.io/affiliates",
     label: "Affiliates Program",
     icon: IconCurrencyDollar,
   },
   {
-    href: "https://anotherwrapper.com/blog",
+    href: "https://stackages.io/blog",
     label: "Blog",
     icon: IconPencil,
   },

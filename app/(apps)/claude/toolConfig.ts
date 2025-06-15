@@ -5,7 +5,7 @@ export const toolConfig: ToolConfig = {
   ////// Base config
   company: {
     name: "BizPlanApp",
-    theme: "anotherwrapper",
+    theme: "cyberpunk",
     homeUrl: "/apps/claude",
     appUrl: "/apps/claude",
     description:
@@ -20,11 +20,11 @@ export const toolConfig: ToolConfig = {
   },
   ////// SEO stuff
   metadata: {
-    title: "Claude 3.5 Sonnet AI Wrapper | AnotherWrapper",
+    title: "Claude 3.5 Sonnet AI Wrapper | Stackages",
     description:
       "Build your own Claude 3.5 Sonnet AI wrapper in minutes with this demo app that uses Anthropic, LangChain & Supabase.",
-    og_image: "https://anotherwrapper.com/og.png",
-    canonical: "https://anotherwrapper.com/apps/claude",
+    og_image: "https://Stackages.com/og.png",
+    canonical: "https://Stackages.com/apps/claude",
   },
 
   ////// Paywall

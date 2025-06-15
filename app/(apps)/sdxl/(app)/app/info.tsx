@@ -18,7 +18,7 @@ export default function InfoCard() {
         description:
           "This demo app uses Stable Diffusion XL and Replicate to generate high-quality images from text descriptions. You can use the building blocks of this app to create your own AI apps. Includes complete source code and documentation.",
         docsLink: {
-          href: "https://docs.anotherwrapper.com/ai/sdxl",
+          href: "https://docs.stackages.io/ai/sdxl",
           text: "documentation",
         },
       }}

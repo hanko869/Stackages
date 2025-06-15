@@ -18,7 +18,7 @@ export default function VoiceAppInfo() {
         description:
           "This demo app uses ElevenLabs' advanced AI technology to convert text into natural-sounding speech with customizable voices. You can use the building blocks of this app to create your own AI apps. Includes complete source code and",
         docsLink: {
-          href: "https://docs.anotherwrapper.com/ai/voice",
+          href: "https://docs.stackages.io/ai/voice",
           text: "documentation.",
         },
       }}

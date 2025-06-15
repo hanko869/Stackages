@@ -18,7 +18,7 @@ export default function InfoCard() {
         description:
           "This demo app uses OpenAI's DALL-E to create unique and creative logos from text descriptions. You can use the building blocks of this app to create your own AI apps. Includes complete source code and documentation.",
         docsLink: {
-          href: "https://docs.anotherwrapper.com/ai/dalle",
+          href: "https://docs.stackages.io/ai/dalle",
           text: "documentation",
         },
       }}

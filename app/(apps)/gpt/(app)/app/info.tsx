@@ -18,7 +18,7 @@ export default function InfoCard() {
         description:
           "This demo app uses OpenAI's GPT-4o mini to generate structured JSON output from text input. You can use the building blocks of this app to create your own AI apps. Includes complete source code and documentation.",
         docsLink: {
-          href: "https://docs.anotherwrapper.com/ai/gpt",
+          href: "https://docs.stackages.io/ai/gpt",
           text: "documentation",
         },
       }}

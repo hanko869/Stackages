@@ -18,7 +18,7 @@ export default function InfoCard() {
         description:
           "This demo app uses GPT-4o's vision capabilities to analyze images and generate detailed descriptions. You can use the building blocks of this app to create your own AI apps. Includes complete source code and documentation.",
         docsLink: {
-          href: "https://docs.anotherwrapper.com/ai/vision",
+          href: "https://docs.stackages.io/ai/vision",
           text: "documentation",
         },
       }}

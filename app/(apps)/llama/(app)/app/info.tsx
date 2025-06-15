@@ -18,7 +18,7 @@ export default function InfoCard() {
         description:
           "This demo app uses Groq & LLaMA 3 to generate structured JSON output from text input. You can use the building blocks of this app to create your own AI apps. Includes complete source code and documentation.",
         docsLink: {
-          href: "https://docs.anotherwrapper.com/ai/llama",
+          href: "https://docs.stackages.io/ai/llama",
           text: "documentation",
         },
       }}

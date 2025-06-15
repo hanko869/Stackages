@@ -15,14 +15,14 @@ export default function NotFoundPage() {
           <DockIcon href="/">
             <HomeIcon className="h-6 w-6" />
           </DockIcon>
-          <DockIcon href="https://docs.anotherwrapper.com">
+          <DockIcon href="https://docs.stackages.io">
             <FileCodeIcon className="h-6 w-6" />
           </DockIcon>
-          <DockIcon href="https://anotherwrapper.lemonsqueezy.com/affiliates">
+          <DockIcon href="https://stackages.io/affiliates">
             <IconMoneybag className="h-6 w-6" />
           </DockIcon>
 
-          <DockIcon href="https://apps.anotherwrapper.com/">
+          <DockIcon href="https://apps.stackages.io/">
             <LaptopIcon className="h-6 w-6" />
           </DockIcon>
         </Dock>

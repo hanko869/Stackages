@@ -36,7 +36,7 @@ export default function ShareButtons({
   marginTop = "mt-4",
   showShareText = true,
 }: ShareButtonsProps) {
-  const fullUrl = `https://anotherwrapper.com${path}`;
+  const fullUrl = `https://stackages.io${path}`;
 
   return (
     <div

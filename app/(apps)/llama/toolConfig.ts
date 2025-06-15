@@ -20,11 +20,11 @@ export const toolConfig: ToolConfig = {
   },
   ////// SEO stuff
   metadata: {
-    title: "Llama 3 AI wrapper demo app | AnotherWrapper",
+    title: "Llama 3 AI wrapper demo app | Stackages",
     description:
       "Build your own Llama 3 AI wrapper in minutes with this demo app that uses Groq, LangChain & Supabase.",
-    og_image: "https://anotherwrapper.com/og.png",
-    canonical: "https://anotherwrapper.com/apps/groq/llama",
+    og_image: "https://Stackages.com/og.png",
+    canonical: "https://Stackages.com/apps/groq/llama",
   },
 
   ////// Paywall

@@ -23,11 +23,11 @@ export const toolConfig: ToolConfig = {
 
   ////// SEO stuff
   metadata: {
-    title: "DALL-E logo generator AI wrapper | AnotherWrapper",
+    title: "DALL-E logo generator AI wrapper | Stackages",
     description:
       "Build your own Dalle 3 AI wrapper logo generator in minutes with this demo app that uses OpenAI, Cloudflare R2 & Supabase.",
     og_image: "https://indielogs.com/og-image.png",
-    canonical: "https://anotherwrapper.com/apps/dalle",
+    canonical: "https://Stackages.com/apps/dalle",
   },
 
   ////// Payments

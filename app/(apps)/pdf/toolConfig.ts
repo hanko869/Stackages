@@ -5,7 +5,7 @@ export const toolConfig: ToolConfig = {
   ////// Base config
   company: {
     name: "AskYourPDF",
-    theme: "anotherwrapper",
+    theme: "cyberpunk",
     homeUrl: "/apps/pdf",
     appUrl: "/apps/pdf",
     description:
@@ -21,11 +21,11 @@ export const toolConfig: ToolConfig = {
 
   ////// SEO stuff
   metadata: {
-    title: "Ask your PDF AI wrapper demo app | AnotherWrapper",
+    title: "Neural PDF Analysis | Stackages",
     description:
       "Build your own chat with a PDF app using OpenAI, LangChain and Supabase vector embeddings. Ask questions to your PDF!",
-    og_image: "https://anotherwrapper.com/og.png",
-    canonical: "https://anotherwrapper.com/apps/pdf",
+    og_image: "https://stackages.io/og.png",
+    canonical: "https://stackages.io/apps/pdf",
   },
 
   ////// Paywall

@@ -20,7 +20,7 @@ export default function AudioInfo() {
       <Info>
         Have a look{" "}
         <a
-          href="https://docs.anotherwrapper.com/ai/audio"
+          href="https://docs.stackages.io/ai/audio"
           target="_blank"
           className="font-semibold underline"
         >

@@ -18,7 +18,7 @@ export default function PdfAppInfo() {
         description:
           "This demo app uses OpenAI and LangChain.js to process PDF documents and enable intelligent chat interactions. You can use the building blocks of this app to create your own AI apps. Includes complete source code and",
         docsLink: {
-          href: "https://docs.anotherwrapper.com/ai/pdf",
+          href: "https://docs.stackages.io/ai/pdf",
           text: "documentation.",
         },
       }}

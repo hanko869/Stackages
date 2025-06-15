@@ -105,7 +105,7 @@ export function Chat({
                 To prevent abuse, we use a credit system for premium features.
               </p>
               <a
-                href="https://anotherwrapper.lemonsqueezy.com/buy/d69ee93a-1070-4820-bec8-cce8b7d6de7d"
+                href="https://stackages.io/buy/d69ee93a-1070-4820-bec8-cce8b7d6de7d"
                 className="text-primary hover:underline font-medium"
                 target="_blank"
               >

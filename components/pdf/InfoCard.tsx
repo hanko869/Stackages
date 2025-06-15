@@ -17,7 +17,7 @@ const InfoCard = () => (
     <Info>
       Have a look{" "}
       <a
-        href="https://docs.anotherwrapper.com/ai/chat"
+        href="https://docs.stackages.io/ai/chat"
         target="_blank"
         className="font-semibold underline"
       >

@@ -5,7 +5,7 @@ export const toolConfig: ToolConfig = {
   ////// Base config
   company: {
     name: "Advanced AI Assistant",
-    theme: "anotherwrapper",
+    theme: "cyberpunk",
     homeUrl: "/apps/chat",
     appUrl: "/apps/chat",
     description:
@@ -24,8 +24,8 @@ export const toolConfig: ToolConfig = {
     title: "Advanced AI Assistant | Multiple Models, Multimodal, Web Search",
     description:
       "AI Assistant powered by OpenAI, Anthropic and Groq, featuring multimodal capabilities, web search via Serper API and Jina AI, and document generation with Canvas.",
-    og_image: "https://anotherwrapper.com/og.png",
-    canonical: "https://anotherwrapper.com/apps/chat",
+    og_image: "https://Stackages.com/og.png",
+    canonical: "https://Stackages.com/apps/chat",
   },
 
   ////// Payments

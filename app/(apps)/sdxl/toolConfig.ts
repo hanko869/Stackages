@@ -21,11 +21,11 @@ export const toolConfig: ToolConfig = {
 
   ////// SEO stuff
   metadata: {
-    title: "SDXL image generator AI wrapper demo app | AnotherWrapper",
+    title: "SDXL image generator AI wrapper demo app | Stackages",
     description:
       "Build your own SDXL AI wrapper image generator in minutes with this demo app that uses Replicate, Cloudflare R2 & Supabase.",
     og_image: "https://indielogs.com/og-image.png",
-    canonical: "https://anotherwrapper.com/apps/sdxl",
+    canonical: "https://Stackages.com/apps/sdxl",
   },
 
   ////// Paywall

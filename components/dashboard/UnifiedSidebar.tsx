@@ -210,7 +210,7 @@ export function UnifiedSidebar({
           <div className="pb-4">
             <div onClick={handleBadgeClick}>
               <Badge
-                href="https://anotherwrapper.lemonsqueezy.com/buy/c1a15bd7-58b0-4174-8d1a-9bca6d8cb511"
+                href="https://stackages.io/buy/c1a15bd7-58b0-4174-8d1a-9bca6d8cb511"
                 text="Build your startup"
                 icon={IconChevronRight}
                 className="w-full"

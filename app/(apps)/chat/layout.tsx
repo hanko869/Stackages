@@ -26,7 +26,7 @@ export default async function Layout({
       <UnifiedSidebar user={user} showChatHistory={true} />
       <div className="lg:pl-2 lg:pt-2 bg-gray-100 flex-1 overflow-y-auto">
         <SidebarInset
-          data-theme="anotherwrapper"
+          data-theme="cyberpunk"
           className="flex-1 bg-white lg:rounded-tl-xl border border-transparent lg:border-neutral-200 overflow-y-auto"
         >
           {children}

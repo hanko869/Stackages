@@ -19,7 +19,7 @@ export default function PaymentModal() {
         "Chat",
         "Chat with PDF",
       ],
-      link: "https://anotherwrapper.lemonsqueezy.com/buy/98070e65-52b1-4208-88a2-176c4ee8688d",
+      link: "https://stackages.io/buy/98070e65-52b1-4208-88a2-176c4ee8688d",
       buttonText: "Buy credits",
       subscriptionInfo:
         "Each generation costs 5 credits, regardless of the model. Good for 10 tests.",
@@ -40,7 +40,7 @@ export default function PaymentModal() {
         "Chat",
         "Chat with PDF",
       ],
-      link: "https://anotherwrapper.lemonsqueezy.com/buy/d69ee93a-1070-4820-bec8-cce8b7d6de7d",
+      link: "https://stackages.io/buy/d69ee93a-1070-4820-bec8-cce8b7d6de7d",
       buttonText: "Buy credits",
       subscriptionInfo:
         "Each generation costs 5 credits, regardless of the model. Good for 20 tests.",
